@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+if command -v lake >/dev/null 2>&1; then
+  exec lake "$@"
+fi
+local_lake="$PWD/.tools/lean-4.33.0-darwin_aarch64/bin/lake"
+if [ -x "$local_lake" ]; then
+  exec "$local_lake" "$@"
+fi
+echo 'Lean is missing. Install elan, then rerun this command (see README.md).' >&2
+exit 127

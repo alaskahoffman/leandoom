@@ -1,0 +1,42 @@
+{
+  "commit": "410d96855b5df5410ff591a90efeafa889119224",
+  "files": {
+    "src/doom/s_sound.c": "36506507ea81cdb82145cd2b18be6322d50e1d9987108e39429b13ff3ee3ea8f",
+    "src/doom/sounds.c": "28d358a0b76ec79208773ce4f9644ac2624a3950a518a3dad1decc8697d57d71",
+    "src/doom/sounds.h": "8a360f02c2bcb17c0fae62bf41317f91b785cd63ef7c9f35bc0cbbf708e9aa7a",
+    "src/i_oplmusic.c": "599a3513dbc7f71873f9e1ad2833c776f179d06591c5f6978dcec52ff8ae9ac6",
+    "src/i_sdlsound.c": "5059d7f7c8f1fabb49b51aae1e871270e1aa47b7e7a34c883969cebf045bb624",
+    "src/mus2mid.c": "c20f0550c5b29aee602c56844f6dfd65a8092b5fe82b3af7a2dadb99ece1ac4c",
+    "src/mus2mid.h": "a1eee41f5dd505882a5cbb6a5c57eb7885103e056f4dba15865b7a0014e9f9a3",
+    "opl/opl3.c": "879237b086d3c6533816f167f81017e3f785f366ef45cb93186475c127d534a7",
+    "opl/opl3.h": "de85ea1afe034d5461e9bb7518e569c5cbc5da59133f49242916dc68d70f4e11",
+    "src/m_fixed.c": "b11d4f37aadb5fe2a9445b6d6ec9f5021926b936d1183c7244ef25a2df6a0ddc",
+    "src/tables.c": "ce354f91b511bf79e9c8691a23e176a6ecd836aa0078abd075a2b40579c07279",
+    "src/doom/r_main.c": "886a147bd2e6b81d46447a8bf1d4805a74077c6f1c32d1bc826c16d0a4710413",
+    "src/doom/m_random.c": "61b1c8cb0bfaaaefdc9f01e2ac797b19ce3e2d75a0dd3bc0c9f7c54c22f32230"
+  },
+  "results": {
+    "driver": {
+      "sha256": "df2280204065e25a3b13a4531809fb68b2141d1f2b7a21a6463cbd33890d27de",
+      "bytes": 66855
+    },
+    "mus": {
+      "sha256": "ac29a6c4ba6ee36123bcd820b9fe36f9b2082a08efbd690ba42f922e2239d7f5",
+      "bytes": 239
+    },
+    "spatial": {
+      "sha256": "6735297b77a7b851c45afbb8f2b625daee000d02e6b9baefeebd9de660f0b33c",
+      "bytes": 17469
+    },
+    "channels": {
+      "sha256": "1d535cf44a985ae4d548c462c27d1c1f4b8ba135e6289fcbb0f4e724a22b9bcf",
+      "bytes": 400244
+    },
+    "opl": {
+      "sha256": "dda7120cd8be663dd14d0a432299bfb04bf1cb1320a899c09a9c39fb6beebaac",
+      "bytes": 672512
+    }
+  },
+  "harness_sha256": "b8f4200c614e72bc4fb859bb77b6782018f920b5c98de022705446f866371df1",
+  "profile": "DOOM 1.9 OPL2 nine melodic voices; immediate writes, Nuked 1.8 44100-Hz resampler. SFX spatialization uses original map-8 exception. MUS valid-input event parity; strict malformed input rejection is separate. PCM output is not a DOS hardware recording."
+}

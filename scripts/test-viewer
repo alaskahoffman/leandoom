@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+sdl_libdir=$(pkg-config --variable=libdir sdl2)
+./scripts/lake -R -K "sdlLibDir=$sdl_libdir" build platform-tests
+SDL_AUDIODRIVER=dummy SDL_VIDEODRIVER=dummy .lake/build/bin/platform-tests

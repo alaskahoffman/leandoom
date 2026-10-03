@@ -1,0 +1,13 @@
+{
+  "title": "DOOM shareware 1.9 (Episode 1)",
+  "author": "id Software",
+  "archive_url": "https://ftp.gwdg.de/pub/misc/ftp.idsoftware.com/idstuff/doom/doom19s.zip",
+  "release_page": "https://legacy.doomworld.com/idgames/idstuff/doom/doom19s",
+  "archive_sha256": "cacf0142b31ca1af00796b4a0339e07992ac5f21bc3f81e7532fe1b5e1b486e6",
+  "wad_sha256": "1d7d43be501e67d927e415e0b8f3e29c3bf33075e859721816f652a526cac771",
+  "wad_bytes": 4196020,
+  "wad_lumps": 1264,
+  "maps": ["E1M1", "E1M2", "E1M3", "E1M4", "E1M5", "E1M6", "E1M7", "E1M8", "E1M9"],
+  "local_directory": "artifacts/doom-shareware-1.9",
+  "notes": "Original shareware archive retained locally; WAD extracted from its concatenated self-extracting ZIP payload without running DOS executables. Assets are not part of this repository or its source-code license. This pins test input data, not DOS executable/demo or framebuffer parity."
+}

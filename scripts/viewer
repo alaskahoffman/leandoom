@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+if ! command -v pkg-config >/dev/null 2>&1 || ! pkg-config --exists sdl2; then
+  echo 'Install SDL2 and pkg-config (macOS: brew install sdl2 pkg-config).' >&2
+  exit 1
+fi
+if [ "$#" -eq 0 ]; then
+  ./scripts/fetch-shareware --offline
+  set -- E1M1 artifacts/doom-shareware-1.9/doom1.wad
+fi
+sdl_libdir=$(pkg-config --variable=libdir sdl2)
+./scripts/lake -R -K "sdlLibDir=$sdl_libdir" build lean-doom-viewer
+exec .lake/build/bin/lean-doom-viewer "$@"

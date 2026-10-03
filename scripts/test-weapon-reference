@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+./scripts/lake build weapon-probe
+exec python3 tests/weapon_reference.py "$@"

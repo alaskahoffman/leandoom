@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Fetch and verify original DOOM shareware 1.9 for local development."""
+import argparse
+import hashlib
+import io
+import json
+from pathlib import Path
+import struct
+import sys
+import urllib.request
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def verify(data, expected, label):
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected:
+        raise ValueError(f'{label}: SHA-256 mismatch: {actual}')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--offline', action='store_true', help='only use the local archive/WAD; never download')
+    args = parser.parse_args()
+    spec = json.loads((ROOT/'tests/reference/shareware.json').read_text())
+    directory = ROOT/spec['local_directory']
+    directory.mkdir(parents=True, exist_ok=True)
+    archive = directory/'doom19s.zip'
+    wad = directory/'doom1.wad'
+    if wad.exists():
+        data = wad.read_bytes()
+        verify(data, spec['wad_sha256'], 'doom1.wad')
+    else:
+        if archive.exists():
+            data = archive.read_bytes()
+        elif args.offline:
+            raise ValueError('shareware is not installed; run ./scripts/fetch-shareware with network access')
+        else:
+            print(f"Downloading {spec['archive_url']}", flush=True)
+            with urllib.request.urlopen(spec['archive_url'], timeout=60) as response:
+                data = response.read(8*1024*1024)
+        verify(data, spec['archive_sha256'], 'doom19s.zip')
+        archive.write_bytes(data)
+        with zipfile.ZipFile(io.BytesIO(data)) as outer:
+            payload = outer.read('DOOMS_19.1') + outer.read('DOOMS_19.2')
+        # Python's ZIP reader accepts the original self-extractor stub; no EXE runs.
+        with zipfile.ZipFile(io.BytesIO(payload)) as inner:
+            data = inner.read('DOOM1.WAD')
+            verify(data, spec['wad_sha256'], 'DOOM1.WAD')
+            for name in ('README.TXT', 'HELPME.TXT'):
+                (directory/name).write_bytes(inner.read(name))
+        wad.write_bytes(data)
+    magic, count, offset = struct.unpack_from('<4sII', data)
+    if magic != b'IWAD' or len(data) != spec['wad_bytes'] or count != spec['wad_lumps']:
+        raise ValueError('unexpected shareware WAD header')
+    maps = []
+    for i in range(count):
+        name = data[offset+16*i+8:offset+16*i+16].rstrip(b'\0').decode('ascii')
+        if len(name) == 4 and name[0] == 'E' and name[2] == 'M':
+            maps.append(name)
+    if maps != spec['maps']:
+        raise ValueError(f'unexpected shareware maps: {maps}')
+    print(f'Verified {wad.relative_to(ROOT)} ({len(data):,} bytes; {len(maps)} maps)')
+    print('Launch: ./scripts/viewer')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
+        sys.exit(f'shareware: {error}')

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+./scripts/lake build fidelity-probe motion-probe collision-probe pickup-probe fuzz-probe status-probe lights-probe doors-probe movers-probe level-probe death-probe blast-probe imp-probe
+exec python3 tests/fidelity_reference.py "$@"

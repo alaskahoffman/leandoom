@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+./scripts/lake build audio-probe
+exec python3 tests/audio_reference.py "$@"

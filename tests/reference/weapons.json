@@ -1,0 +1,15 @@
+{
+  "commit": "410d96855b5df5410ff591a90efeafa889119224",
+  "files": {
+    "src/doom/p_pspr.c": "ac89e113ebb4c4810356ce69f461df5ec4f3e5269df1e11b39afcb49056773cb",
+    "src/doom/info.c": "0e76c0074a62f3da192fc9768bfdd10ce8cb18b3f5b520cd6d7003744ae8ffcd",
+    "src/doom/m_random.c": "61b1c8cb0bfaaaefdc9f01e2ac797b19ce3e2d75a0dd3bc0c9f7c54c22f32230",
+    "src/m_fixed.c": "b11d4f37aadb5fe2a9445b6d6ec9f5021926b936d1183c7244ef25a2df6a0ddc",
+    "src/tables.c": "ce354f91b511bf79e9c8691a23e176a6ecd836aa0078abd075a2b40579c07279"
+  },
+  "harness_sha256": "152af73f3d780e5a512adc122c8a7586e578c11bb12f8b3b34db15555100f91a",
+  "commands": 68480,
+  "sha256": "745d34f428dde01a5abbe6fee17b2cd67ef7864b1f690f2abcc435a8c0fa4718",
+  "bytes": 3467582,
+  "profile": "Fist/pistol/shotgun original psprite actions; starts at ready. Supplied geometry/damage hooks consume 0..3 P_Random draws per pellet. Other weapons and full player thinker not covered."
+}

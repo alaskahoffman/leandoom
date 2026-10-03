@@ -1,0 +1,10 @@
+.lake/
+.tools/
+artifacts/
+*.wad
+*.WAD
+__pycache__/
+.DS_Store
+
+# Uncompressed local copy of the committed reference corpus.
+tests/reference/expected.json

@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+./scripts/fetch-shareware --offline
+./scripts/lake build lean-doom audio-probe
+python3 tests/integration_wads.py --combat artifacts/doom-shareware-1.9/doom1.wad \
+  > artifacts/doom-shareware-1.9/combat-smoke.json
+python3 tests/integration_e1m1.py > artifacts/doom-shareware-1.9/e1m1-features.json
+python3 tests/integration_audio.py > artifacts/doom-shareware-1.9/e1m1-audio.json
+python3 - <<'PY'
+import json
+from pathlib import Path
+root = Path('artifacts/doom-shareware-1.9')
+spec = json.loads(Path('tests/reference/shareware.json').read_text())
+report = json.loads((root/'combat-smoke.json').read_text())
+assert [frame['map'] for frame in report['frames']] == spec['maps']
+print(f"DOOM shareware: {report['rendered']}/9 combat maps rendered; report: {root/'combat-smoke.json'}")
+print("E1M1 music: complete MUS/register traces and 220,500 PCM frames match C; report: artifacts/doom-shareware-1.9/e1m1-audio.json")
+print(f"E1M1 feature inventory, scrolling and relocated-start mover/secret/exit/combat checks passed; report: {root/'e1m1-features.json'}")
+PY
