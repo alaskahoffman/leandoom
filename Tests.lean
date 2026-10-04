@@ -37,7 +37,7 @@ def main : IO Unit := do
   expect ((Fixed.divChecked ⟨65536⟩ ⟨5⟩).toOption.map (·.raw.toInt) == some 858993459) "reference division just below saturation boundary"
   expect ((Fixed.divChecked ⟨-1⟩ ⟨0⟩).toOption.map (·.raw.toInt) == some (-2147483648)) "reference division saturates negative zero divisor"
   expect ((Fixed.divChecked ⟨0⟩ ⟨0⟩).toOption.map (·.raw.toInt) == some 2147483647) "reference division saturates zero over zero"
-  expect ((Fixed.divChecked ⟨-2147483648⟩ ⟨1⟩).toOption.isNone) "unverified absolute overflow is explicit"
+  expect ((Fixed.divChecked ⟨-2147483648⟩ ⟨1⟩).toOption.isNone) "original DOS quotient overflow is explicit"
   expect ((Angle.fromVector (Fixed.ofInt 0) (Fixed.ofInt 1)).raw == 0x3fffffff) "north keeps original angle asymmetry"
   expect ((⟨0⟩ : Angle).fineSine.raw == 25 && (⟨0⟩ : Angle).fineCosine.raw == 65535) "fine angles retain original half-bin table samples"
   expect ((slopeDiv 0x20000000 512).val == 0) "slope numerator wraps before division"

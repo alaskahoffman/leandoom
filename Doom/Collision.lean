@@ -50,7 +50,7 @@ def Line.make (x y x2 y2 : Fixed) (front : Heights) (back : Option Heights)
     else if dy.raw == 0 then pure Slope.horizontal
     else match Fixed.divChecked dy dx with
       | .ok ratio => pure (if ratio.raw > 0 then .positive else .negative)
-      | .error _ => throw "collision: unverified abs(INT_MIN) in slope classification"
+      | .error e => throw s!"collision: original DOS division fault ({repr e}) in slope classification"
   return ⟨x, y, dx, dy, ⟨⟨max y.raw y2.raw⟩, ⟨min y.raw y2.raw⟩,
       ⟨min x.raw x2.raw⟩, ⟨max x.raw x2.raw⟩⟩, slope, front, back, blocking, special, back.isSome, false⟩
 

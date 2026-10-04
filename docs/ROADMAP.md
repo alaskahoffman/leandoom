@@ -113,11 +113,12 @@ overflow, quantization, and octant-specific one-unit offsets. No host trig
 function is used to regenerate the tables. The generated file is reproducible
 with `scripts/generate-tables.py`; all prior 29,353 reference results are preserved.
 
-`Fixed.divChecked` now implements the reference's early saturation and signed
-truncation on operands other than raw INT_MIN. INT_MIN operands return an explicit
-unsupported-input error: the reference calls C's undefined abs(INT_MIN), and
-its behavior has not been established against DOS. This checked boundary is
-tested separately from C equivalence. It must not become a silent fallback.
+`Fixed.divChecked` now has a kernel-checked equivalence proof against the original
+DOS DOOM 1.9 routine bytes under explicit x86 semantics, for every input pair.
+The wrapping `abs(INT_MIN)` guard is preserved; successful results, saturation,
+and divide-error causes match. CPU divide errors become explicit Lean errors.
+Addition, subtraction, multiplication, and arbitrary RNG call traces also have
+binary parity proofs; see [the scope and reproduction guide](ARITHMETIC_PROOFS.md).
 The viewer's movement/rendering still use their previous approximate arithmetic paths;
 the new primitives will be integrated with the vanilla movement/simulation port.
 
@@ -168,7 +169,7 @@ callback order and outputs. All prior 162,587 reference results are preserved.
 The position-query stage itself does not commit movement, but does commit pickup
 effects/removal. Actors with missile/skull effects are outside its type/domain. It rejects a ninth contacted special,
 extended unsigned BLOCKMAP offsets/indices, unsupported signed dimensions, and
-unverified abs(INT_MIN) cases. The loader records signed-offset compatibility while
+original DOS division faults. The loader records signed-offset compatibility while
 retaining its existing diagnostic parsing behavior. Validcount rollover remains
 unverified; the current query uses a fresh visited set. WAD integration fixtures
 cover geometry conversion, exact wall tangency, the leading-zero quirk, and the
@@ -393,7 +394,8 @@ thinker deletion and item respawn remain separate dependencies; the remaining
 prototype combat/inventory bridge does not establish their original timing.
 Pickup effects must preserve their position-check timing. Ticcmd demo
 encoding/turn quantization, mouse/joystick, weapon/special commands, full-tick
-traces, demo playback, image comparisons, and DOS INT_MIN evidence remain pending.
+traces, demo playback, and image comparisons remain pending. DOS `FixedDiv`
+INT_MIN behavior is now covered by the arithmetic binary proof.
 
 Existing fixture tests remain useful for parser safety and prototype regressions; expectations
 that encode simplified gameplay must change when reference evidence contradicts
@@ -731,7 +733,8 @@ formats come after the single-player compatibility target.
 Keep parsers fallible and the simulation state explicit. Start with useful local
 invariants: validated array indices, framebuffer bounds, nonzero divisors, and
 bounded BSP traversals. Add proofs where they eliminate real failure modes.
-The RNG module now proves lookup bounds and stream isolation; other systems
-still rely on runtime checks and tests. This is not a formally verified engine.
+The RNG module proves lookup bounds and stream isolation, and the binary proofs
+establish core arithmetic and RNG trace parity under documented x86 semantics.
+Other systems still rely on runtime checks and tests. This is not a formally verified engine.
 Neither a proof of bounds safety nor successful WAD parsing
 establishes behavioral equivalence to DOOM.

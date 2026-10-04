@@ -318,9 +318,11 @@ class FidelityTests(unittest.TestCase):
                     reference.run_probe(reference.probe_for("keyboard"), [command])
                 self.assertIn("integer outside", error.exception.stderr)
 
-    def test_division_rejects_unverified_abs_overflow(self):
-        # This tests our explicit unsupported-input contract, NOT DOS parity.
+    def test_division_preserves_original_dos_minimum_integer_outcomes(self):
+        # Original 1.9 instructions, not undefined abs(INT_MIN) in the C oracle.
         commands = [f"div {a} {b}" for a, b in [(-2147483648, 0), (-2147483648, 1),
-                    (-2147483648, -2147483648), (1, -2147483648), (0, -2147483648)]]
+                    (-2147483648, -2147483648), (1, -2147483648), (0, -2147483648),
+                    (-2147483648, 65536), (-2147483648, -65536), (-2147483648, -65537)]]
         self.assertEqual(reference.run_probe(reference.PROBE, commands),
-                         ["unverified-abs-overflow"] * len(commands))
+                         ["divide-by-zero", "quotient-overflow", "2147483647", "-2147483648",
+                          "-2147483648", "-2147483648", "quotient-overflow", "2147450880"])

@@ -141,7 +141,7 @@ def corpus():
                         + ["clear", "play", "misc", "clear"])
 
     # FixedDiv inputs containing INT_MIN are outside this oracle's C domain.
-    # Their explicit Lean rejection is tested separately, not labeled C parity.
+    # Their original DOS results/faults are proved and tested separately; not C parity.
     div_edges = [x for x in edges if x != -2147483648]
     pairs = [(a, b) for a in div_edges for b in div_edges]
     pairs += [(draw(), draw()) for _ in range(4096)]

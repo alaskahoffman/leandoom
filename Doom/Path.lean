@@ -31,7 +31,7 @@ def Divline.pointSide (line : Divline) (x y : Fixed) : Bool :=
       right.raw ≥ left.raw
 
 def checkedPathDiv (a b : Fixed) : Except String Fixed :=
-  (Fixed.divChecked a b).mapError fun _ => "path: unverified abs(INT_MIN) division"
+  (Fixed.divChecked a b).mapError fun e => s!"path: original DOS division fault ({repr e})"
 
 def checkedPathAbs (a : Fixed) : Except String Fixed :=
   if a.raw == -2147483648 then .error "path: unverified abs(INT_MIN)"

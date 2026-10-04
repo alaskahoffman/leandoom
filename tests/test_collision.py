@@ -50,7 +50,7 @@ class CollisionTests(unittest.TestCase):
                 "spechit overflow"),
                (["reset",f"thing -2147483648 0 {16*UNIT} 1","link 0 0",
                  f"query 0 0 {16*UNIT} 0 {128*UNIT} -1 0"],"abs(INT_MIN)"),
-               (["reset",f"line 0 0 -2147483648 65536 0 {128*UNIT} 0 0 0"],
+               (["reset",f"line 0 0 1 -2147483648 0 {128*UNIT} 0 0 0"],
                 "slope classification")]
         for commands,message in cases:
             with self.subTest(message=message):

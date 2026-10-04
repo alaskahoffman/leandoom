@@ -18,7 +18,8 @@ private def step (rng : DoomRandom) (line : String) : Except String (String × D
   | ["div", a, b] =>
     match Fixed.divChecked (← fixed a) (← fixed b) with
     | .ok value => return (toString value.raw.toInt, rng)
-    | .error .unverifiedAbsOverflow => return ("unverified-abs-overflow", rng)
+    | .error .divideByZero => return ("divide-by-zero", rng)
+    | .error .quotientOverflow => return ("quotient-overflow", rng)
   | ["slope", a, b] =>
     return (toString (slopeDiv (← fixed a).raw.toUInt32 (← fixed b).raw.toUInt32).val, rng)
   | ["angle", x, y, ox, oy] =>

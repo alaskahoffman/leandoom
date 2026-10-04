@@ -33,7 +33,7 @@ class DemoTests(unittest.TestCase):
         result = subprocess.run([str(ROOT/'scripts/lake'), 'env', 'lean', 'ProofAudit.lean'],
                                 cwd=ROOT, check=True, text=True, capture_output=True)
         lines = result.stdout.strip().splitlines()
-        self.assertEqual(len(lines), 10, result.stdout)
+        self.assertEqual(len(lines), 22, result.stdout)
         allowed = {'propext', 'Classical.choice', 'Quot.sound'}
         for line in lines:
             match = re.search(r'depends on axioms: \[(.*)\]', line)

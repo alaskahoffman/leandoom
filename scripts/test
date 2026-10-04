@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-./scripts/lake build lean-doom doom-tests fidelity-probe motion-probe collision-probe pickup-probe fuzz-probe status-probe lights-probe doors-probe movers-probe level-probe death-probe blast-probe imp-probe audio-probe weapon-probe demo-probe
+./scripts/lake build lean-doom doom-tests fidelity-probe motion-probe collision-probe pickup-probe fuzz-probe status-probe lights-probe doors-probe movers-probe level-probe death-probe blast-probe imp-probe audio-probe weapon-probe demo-probe Doom.Proofs.OriginalMul Doom.Proofs.OriginalAddSub Doom.Proofs.OriginalRandom
 .lake/build/bin/doom-tests
 python3 -m unittest discover -s tests -v

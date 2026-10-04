@@ -35,7 +35,7 @@ set_option maxRecDepth 2048 in
 theorem randomTable_size : randomTable.size = 256 := by decide
 
 /-- Every byte index is in bounds; no panic/default branch is needed. -/
-private def randomAt (index : UInt8) : Nat :=
+def randomAt (index : UInt8) : Nat :=
   randomTable[index.toNat]'(by rw [randomTable_size]; exact index.toNat_lt)
 
 
@@ -43,7 +43,7 @@ private def randomAt (index : UInt8) : Nat :=
 structure DoomRandom where
   play : UInt8 := 0
   misc : UInt8 := 0
-  deriving BEq, Repr, Inhabited
+  deriving BEq, DecidableEq, Repr, Inhabited
 
 namespace DoomRandom
 

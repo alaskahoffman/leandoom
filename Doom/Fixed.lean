@@ -3,7 +3,7 @@ namespace Doom
 /-- Signed 16.16 storage. Arithmetic explicitly wraps to 32 bits. -/
 structure Fixed where
   raw : Int32
-  deriving BEq, Repr, Inhabited
+  deriving BEq, DecidableEq, Repr, Inhabited
 
 namespace Fixed
 
@@ -23,22 +23,29 @@ def div? (a b : Fixed) : Option Fixed :=
   else some ⟨Int32.ofInt ((a.raw.toInt * 65536).tdiv b.raw.toInt)⟩
 
 inductive DivisionError where
-  /-- The reference's abs(INT_MIN) is undefined in C; DOS evidence is pending. -/
-  | unverifiedAbsOverflow
-  deriving BEq, Repr
+  /-- The original DOS IDIV instruction raises #DE for these outcomes. -/
+  | divideByZero
+  | quotientOverflow
+  deriving BEq, DecidableEq, Repr
 
-/-- FixedDiv on the reference's verified operand domain. The guard saturates
-before division (including zero divisors); the remaining quotient truncates
-toward zero. Refuse abs(INT_MIN) inputs rather than inventing DOS behavior.
-Reference: Chocolate Doom 3.1.1 src/m_fixed.c, pinned in tests/reference/manifest.json.
-Derived from id Software (1993-1996), Simon Howard (2005-2014), GPL-2.0-or-later;
-see COPYING.md. This differs deliberately from the diagnostic div? above. -/
+/-- Two's-complement absolute value: INT_MIN stays negative, as in DOS DOOM. -/
+def absWrap (n : Int32) : Int32 := if n < 0 then -n else n
+
+/-- Original DOS DOOM 1.9 FixedDiv, including its wrapping absolute-value guard.
+The guard saturates; IDIV truncates toward zero and faults rather than wrapping
+an out-of-range quotient. Represent #DE as an explicit error, not a host crash.
+Proved against the original instruction bytes in Doom.Proofs.OriginalDiv.
+Reference implementation derived from id Software (1993-1996), Simon Howard
+(2005-2014), GPL-2.0-or-later; see COPYING.md and tests/reference/manifest.json.
+This deliberately differs from the diagnostic div? above. -/
 def divChecked (a b : Fixed) : Except DivisionError Fixed :=
-  if a.raw == -2147483648 || b.raw == -2147483648 then
-    .error .unverifiedAbsOverflow
-  else if a.raw.toInt.natAbs / 16384 ≥ b.raw.toInt.natAbs then
+  if (absWrap a.raw >>> 14) ≥ absWrap b.raw then
     .ok ⟨if (a.raw ^^^ b.raw) < 0 then -2147483648 else 2147483647⟩
-  else .ok ⟨Int32.ofInt ((a.raw.toInt * 65536).tdiv b.raw.toInt)⟩
+  else if b.raw == 0 then .error .divideByZero
+  else
+    let q := (a.raw.toInt * 65536).tdiv b.raw.toInt
+    if q < -2147483648 || q > 2147483647 then .error .quotientOverflow
+    else .ok ⟨Int32.ofInt q⟩
 
 instance : Add Fixed := ⟨add⟩
 instance : Sub Fixed := ⟨sub⟩

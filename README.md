@@ -39,6 +39,17 @@ The formal proofs cover selected arithmetic and geometry properties, not the
 whole engine. See [the proof companion](#live-proof-companion) and
 [the roadmap](docs/ROADMAP.md) for the exact scope.
 
+**Proved against original machine-code bytes:** the four core fixed-point operations
+match DOOM 1.9 under explicit x86 semantics: addition, subtraction and multiplication
+return identical bits for every input pair; division matches both results and
+divide-error causes, including `INT_MIN` quirks. The RNG returns the same values
+and final indices for any finite sequence of gameplay draws, miscellaneous draws
+and resets. Run `./scripts/verify-original-mul` and `./scripts/verify-original-arithmetic`
+after fetching shareware to regenerate kernel-checked certificates from the original
+executable. See [the arithmetic/RNG proofs and exact scope](docs/ARITHMETIC_PROOFS.md).
+These prove the core operations, not all engine arithmetic, random-call ordering,
+or whole-engine compatibility.
+
 Source code is **GPL-2.0-or-later**; see [COPYING.md](COPYING.md) and the upstream
 attributions in the source files. DOOM game data belongs to its respective rights
 holders and is not included in this repository. The fetch script obtains and

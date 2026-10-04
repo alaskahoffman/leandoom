@@ -1,0 +1,87 @@
+{
+  "title": "Original DOOM 1.9 add/sub, FixedDiv and RNG",
+  "units": {
+    "addBytes": {
+      "file_offset": "0x62ba1",
+      "bytes": 2,
+      "hex": "01 d8",
+      "data_relocations": []
+    },
+    "subBytes": {
+      "file_offset": "0x62baa",
+      "bytes": 2,
+      "hex": "29 d8",
+      "data_relocations": []
+    },
+    "fixedDivBytes": {
+      "file_offset": "0x5f194",
+      "bytes": 65,
+      "hex": "53 51 56 89 c1 89 d3 99 31 d0 29 d0 89 c6 89 d8 c1 fe 0e 99 31 d0 29 d0 39 c6 7c 15 31 cb 85 db 0f 9c c0 25 ff 00 00 00 05 ff ff ff 7f 5e 59 5b c3 89 c8 99 0f a4 c2 10 c1 e0 10 f7 fb 5e 59 5b c3",
+      "data_relocations": []
+    },
+    "playRandomBytes": {
+      "file_offset": "0x66174",
+      "bytes": 28,
+      "hex": "a1 20 27 01 00 40 25 ff 00 00 00 a3 20 27 01 00 8a 80 1c 26 01 00 25 ff 00 00 00 c3",
+      "data_relocations": [
+        {
+          "offset": 1,
+          "target": "0x12720"
+        },
+        {
+          "offset": 12,
+          "target": "0x12720"
+        },
+        {
+          "offset": 18,
+          "target": "0x1261c"
+        }
+      ]
+    },
+    "miscRandomBytes": {
+      "file_offset": "0x66194",
+      "bytes": 28,
+      "hex": "a1 1c 27 01 00 40 25 ff 00 00 00 a3 1c 27 01 00 8a 80 1c 26 01 00 25 ff 00 00 00 c3",
+      "data_relocations": [
+        {
+          "offset": 1,
+          "target": "0x1271c"
+        },
+        {
+          "offset": 12,
+          "target": "0x1271c"
+        },
+        {
+          "offset": 18,
+          "target": "0x1261c"
+        }
+      ]
+    },
+    "clearRandomBytes": {
+      "file_offset": "0x661b4",
+      "bytes": 17,
+      "hex": "52 31 d2 89 15 20 27 01 00 89 15 1c 27 01 00 5a c3",
+      "data_relocations": [
+        {
+          "offset": 5,
+          "target": "0x12720"
+        },
+        {
+          "offset": 11,
+          "target": "0x1271c"
+        }
+      ]
+    },
+    "randomTableBytes": {
+      "file_offset": "0x9a630",
+      "bytes": 256,
+      "hex": "00 08 6d dc de f1 95 6b 4b f8 fe 8c 10 42 4a 15 d3 2f 50 f2 9a 1b cd 80 a1 59 4d 24 5f 6e 55 30 d4 8c d3 f9 16 4f c8 32 1c bc 34 8c ca 78 44 91 3e 46 b8 be 5b c5 98 e0 95 68 19 b2 fc b6 ca b6 8d c5 04 51 b5 f2 91 2a 27 e3 9c c6 e1 c1 db 5d 7a af f9 00 af 8f 46 ef 2e f6 a3 35 a3 6d a8 87 02 eb 19 5c 14 91 8a 4d 45 a6 4e b0 ad d4 a6 71 5e a1 29 32 ef 31 6f a4 46 3c 02 25 ab 4b 88 9c 0b 38 2a 92 8a e5 49 92 4d 3d 62 c4 87 6a 3f c5 c3 56 60 cb 71 65 aa f7 b5 71 50 fa 6c 07 ff ed 81 e2 4f 6b 70 a6 67 f1 18 df ef 78 c6 3a 3c 52 80 03 b8 42 8f e0 91 e0 51 ce a3 2d 3f 5a a8 72 3b 21 9f 5f 1c 8b 7b 62 7d c4 0f 46 c2 fd 36 0e 6d e2 47 11 a1 5d ba 57 f4 8a 14 34 7b fb 1a 24 11 2e 34 e7 e8 4c 1f dd 54 25 d8 a5 d4 6a c5 f2 62 2b 27 af fe 91 be 54 76 de bb 88 78 a3 ec f9",
+      "data_relocations": []
+    }
+  },
+  "data_object": 3,
+  "data_page_start": "0x88014",
+  "rng_table_offset": "0x1261c",
+  "play_index": "0x12720",
+  "misc_index": "0x1271c"
+}
