@@ -1,0 +1,30 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "publish": {
+      "code_offset": "0x2e415",
+      "file_offset": "0x70429",
+      "hex": "89c3a318c10200",
+      "relocations": [
+        {
+          "offset": 3,
+          "object": 3,
+          "target": "0x2c118"
+        }
+      ]
+    },
+    "link": {
+      "code_offset": "0x2e4af",
+      "file_offset": "0x704c3",
+      "hex": "0fbf431c6bc0564583c31e83c212890424a148c1020083c11e03042483c71e8942fc",
+      "relocations": [
+        {
+          "offset": 18,
+          "object": 3,
+          "target": "0x2c148"
+        }
+      ]
+    }
+  },
+  "scope": "P_LoadSideDefs side-table publication and sector-pointer suffix only, in the flat data-relative x86 model. Actual temporary stack store precedes sector-base read. Excludes allocator, memset, texture lookup calls, loop traversal, startup reachability and complete loader execution."
+}

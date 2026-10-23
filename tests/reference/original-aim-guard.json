@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimGuard": {
+      "code_offset": "0x2b760",
+      "file_offset": "0x6d774",
+      "hex": "53515256575589c2837804000f84a80000008b4808f64110040f8453010000",
+      "relocations": []
+    },
+    "aimStop": {
+      "code_offset": "0x2b8d2",
+      "file_offset": "0x6d8e6",
+      "hex": "31c05d5f5e5a595bc3",
+      "relocations": []
+    }
+  }
+}

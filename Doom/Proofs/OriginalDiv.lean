@@ -1,5 +1,5 @@
 import Doom.Fixed
-import Doom.Verification.X86Routine
+import Doom.Verification.X86ValueRoutine
 import Doom.Verification.Doom19
 import Init.Data.SInt.Lemmas
 import Init.Omega
@@ -8,7 +8,7 @@ set_option backward.isDefEq.respectTransparency false
 set_option linter.unusedSimpArgs false
 
 namespace Doom.Proofs
-open Verification X86 X86Routine
+open Verification X86 X86ValueRoutine
 
 theorem wrapped_abs_bits (w : Word) :
     (w ^^^ signMask w) - signMask w = (Fixed.absWrap (Int32.ofBitVec w)).toBitVec := by
@@ -112,7 +112,7 @@ def divProgram : Nat → Option (Op × Nat)
 -- Only instruction-boundary entries are used; other offsets need not decode to none.
 set_option maxRecDepth 4096 in
 private theorem div_decode_at : ∀ pc : Fin 65, divProgram pc.val ≠ none →
-    X86Routine.decode (Doom19.fixedDivBytes.drop pc.val) = divProgram pc.val := by decide
+    X86ValueRoutine.decode (Doom19.fixedDivBytes.drop pc.val) = divProgram pc.val := by decide
 
 set_option maxRecDepth 4096 in
 set_option maxHeartbeats 1600000 in
@@ -128,12 +128,12 @@ theorem div_execution (a b : Fixed) :
   all_goals
     simp [divGuard, -Int.not_lt] at hg
     unfold divisionInputs
-    iterate 16 (rw [runProgram.eq_def]; simp [divProgram, X86Routine.execute, put, write, eax, ebx, ecx, edx, esi])
+    iterate 16 (rw [runProgram.eq_def]; simp [divProgram, X86ValueRoutine.execute, put, write, eax, ebx, ecx, edx, esi])
     try simp only [hg, decide_true, decide_false, if_true, if_false]
   case pos =>
-    iterate 4 (rw [runProgram.eq_def]; simp [divProgram, X86Routine.execute, put, write, eax, ebx, ecx, edx, esi])
+    iterate 4 (rw [runProgram.eq_def]; simp [divProgram, X86ValueRoutine.execute, put, write, eax, ebx, ecx, edx, esi])
     rw [runProgram.eq_def]
-    simp [divProgram, X86Routine.execute, put, write, eax, ebx, ecx, edx, esi]
+    simp [divProgram, X86ValueRoutine.execute, put, write, eax, ebx, ecx, edx, esi]
     by_cases hd : b.raw.toInt = 0
     · simp [hd, resultWord, divGuard, hg]
     · by_cases hq : (divDividend a.raw.toBitVec).tdiv b.raw.toInt < -2147483648 ∨
@@ -141,14 +141,14 @@ theorem div_execution (a b : Fixed) :
       all_goals
         simp only [divDividend] at hq
         simp only [hd, hq, if_false, if_true]
-        try iterate 4 (rw [runProgram.eq_def]; simp [divProgram, X86Routine.execute, put, write, eax, ebx, ecx, edx, esi])
+        try iterate 4 (rw [runProgram.eq_def]; simp [divProgram, X86ValueRoutine.execute, put, write, eax, ebx, ecx, edx, esi])
         simp [resultWord, write, eax, divGuard, hg, hd, divDividend, hq]
 
   case neg =>
     by_cases hs : (b.raw.toBitVec ^^^ a.raw.toBitVec).toInt < 0
     all_goals
       simp [BitVec.toInt_xor, -Int.not_lt] at hs
-      iterate 9 (rw [runProgram.eq_def]; simp [divProgram, X86Routine.execute, put, write, eax, ebx, ecx, edx, esi])
+      iterate 9 (rw [runProgram.eq_def]; simp [divProgram, X86ValueRoutine.execute, put, write, eax, ebx, ecx, edx, esi])
       simp [resultWord, divGuard, hg, hs, write, eax]
       rw [lowByte_mask]
       rfl
@@ -195,7 +195,7 @@ theorem div_program_matches (a b : Fixed) :
     split <;> rfl
 
 theorem divProgram_sound (pc : Nat) (h : divProgram pc ≠ none) :
-    X86Routine.decode (Doom19.fixedDivBytes.drop pc) = divProgram pc := by
+    X86ValueRoutine.decode (Doom19.fixedDivBytes.drop pc) = divProgram pc := by
   have bound : pc < 65 := by
     unfold divProgram at h
     split at h <;> simp_all <;> omega
@@ -204,7 +204,7 @@ theorem divProgram_sound (pc : Nat) (h : divProgram pc ≠ none) :
 /-- All 2^64 operand pairs: equal result bits OR the same IDIV fault cause.
 The complete original routine is decoded, including guard and both returns. -/
 theorem fixed_div_matches_doom19 (a b : Fixed) :
-    resultWord (X86Routine.run Doom19.fixedDivBytes 40 (divisionInputs a b)) =
+    resultWord (X86ValueRoutine.run Doom19.fixedDivBytes 40 (divisionInputs a b)) =
       some (divisionAnswer (Fixed.divChecked a b)) := by
   have hp := div_program_matches a b
   have hv : runProgram divProgram 40 (divisionInputs a b) ≠ .unsupported := by

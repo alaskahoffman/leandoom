@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimDistance": {
+      "code_offset": "0x2b797",
+      "file_offset": "0x6d7ab",
+      "hex": "a1b8b902008b1af7eb0facd01089c2",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2b9b8"
+        }
+      ]
+    }
+  }
+}

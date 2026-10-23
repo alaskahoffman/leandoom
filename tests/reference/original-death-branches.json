@@ -1,0 +1,34 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "guard": {
+      "code_offset": "0x2a38c",
+      "file_offset": "0x6c3a0",
+      "hex": "8b15dcb302008d04d50000000001d08d04850000000029d08d04c5000000008b93840000000578ae020039d0750e833d5c2c0100007405e8c8abffff",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2b3dc"
+        },
+        {
+          "offset": 38,
+          "object": 3,
+          "target": "0x2ae78"
+        },
+        {
+          "offset": 48,
+          "object": 3,
+          "target": "0x12c5c"
+        }
+      ]
+    },
+    "choice": {
+      "code_offset": "0x2a3c8",
+      "file_offset": "0x6c3dc",
+      "hex": "8b435c8b50088b736cf7da39f27e0d8b783485ff740689fa89d8eb088b535c89d88b5230e8af6a0000",
+      "relocations": []
+    }
+  },
+  "scope": "Death automap guard and normal/extreme state choice; stops at actual AM_Stop or P_SetMobjState call entry."
+}

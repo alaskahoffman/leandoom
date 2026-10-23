@@ -1,0 +1,12 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "continuation": {
+      "code_offset": "0x34722",
+      "file_offset": "0x76736",
+      "hex": "85c0750889c85f5e5a595bc38b1de40003004183c60439d97cd2",
+      "relocations": [{"offset": 14, "object": 3, "target": "0x300e4"}]
+    }
+  },
+  "scope": "Actual comparator-result branch, matched restoring return, index/offset advance and signed table-loop branch."
+}

@@ -1,0 +1,24 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "copy": {
+      "code_offset": "0x2e358",
+      "file_offset": "0x7036c",
+      "hex": "668b410a66894316668b410c66894318",
+      "relocations": []
+    },
+    "advance": {
+      "code_offset": "0x2e3ac",
+      "file_offset": "0x703c0",
+      "hex": "8b3534c102004583c10e83c33e39f50f8cd9feffff",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2c134"
+        }
+      ]
+    }
+  },
+  "scope": "Original P_LoadLineDefs side-index copy, cached-sector branches and loop advance. Stops at next geometry iteration or cleanup; does not execute earlier geometry, allocation, full loader loop or startup."
+}

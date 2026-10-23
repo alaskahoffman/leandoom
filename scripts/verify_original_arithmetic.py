@@ -89,7 +89,7 @@ import Doom.Proofs.OriginalAddSub
 import Doom.Proofs.OriginalRandom
 set_option maxRecDepth 4096
 namespace Doom.Verification.ExtractedArithmetic
-open X86 X86Routine Doom.Proofs
+open X86 X86ValueRoutine Doom.Proofs
 '''
     for name, data in extracted.items():
         text += f'def {name} : List UInt8 := [{", ".join(hex(b) for b in data)}]\n'
@@ -101,7 +101,7 @@ theorem extracted_sub (a b : Fixed) :
     (X86.run 1 subBytes (originalMulInputs a b)).map (fun r => r eax) = some (a-b).raw.toBitVec := by
   rw [subBytes_checked]; exact fixed_sub_matches_doom19 a b
 theorem extracted_div (a b : Fixed) :
-    resultWord (X86Routine.run fixedDivBytes 40 (divisionInputs a b)) =
+    resultWord (X86ValueRoutine.run fixedDivBytes 40 (divisionInputs a b)) =
       some (divisionAnswer (Fixed.divChecked a b)) := by
   rw [fixedDivBytes_checked]; exact fixed_div_matches_doom19 a b
 def extractedCode : RandomCall → List UInt8

@@ -31,12 +31,21 @@ def Motion.thrust (body : Motion) (angle : Angle) (move : Fixed) : Motion :=
   { body with momx := body.momx + move * angle.fineCosine
               momy := body.momy + move * angle.fineSine }
 
+/-- The angle update shared with the original-byte turning proof. -/
+def Motion.turn (body : Motion) (amount : Int16) : Motion :=
+  { body with angle := ⟨body.angle.raw + (Int32.ofInt (amount.toInt * 65536)).toUInt32⟩ }
+
+/-- Ground predicate shared by the player update and the original-byte guard proof. -/
+def Motion.onGround (body : Motion) : Prop := body.z.raw ≤ body.floorz.raw
+
+instance (body : Motion) : Decidable body.onGround :=
+  inferInstanceAs (Decidable (body.z.raw ≤ body.floorz.raw))
+
 /-- Turn first, then forward thrust, then side thrust. Airborne commands still
 turn and start the walking state, but do not add momentum. -/
 def Motion.movePlayer (body : Motion) (cmd : Ticcmd) : Motion := Id.run do
-  let mut body := { body with
-    angle := ⟨body.angle.raw + (Int32.ofInt (cmd.angleTurn.toInt * 65536)).toUInt32⟩ }
-  if body.z.raw ≤ body.floorz.raw then
+  let mut body := body.turn cmd.angleTurn
+  if body.onGround then
     if cmd.forwardMove != 0 then
       body := body.thrust body.angle ⟨Int32.ofInt (cmd.forwardMove.toInt * 2048)⟩
     if cmd.sideMove != 0 then

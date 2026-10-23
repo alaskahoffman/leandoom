@@ -62,8 +62,9 @@ class ThingTests(unittest.TestCase):
         mirror = self.render(things(base, [(48, 0, 225, 3004, 7)]), (0, 0, 0, 0))
         self.assertEqual(self.pixel(straight, 152, 100), rgb(230))
         self.assertEqual(self.pixel(straight, 173, 100), rgb(240))
-        self.assertEqual(self.pixel(mirror, 145, 100), rgb(240))
-        self.assertEqual(self.pixel(mirror, 167, 100), rgb(230))
+        # Flipping reverses the source step; it does not mirror the patch origin.
+        self.assertEqual(self.pixel(mirror, 152, 100), rgb(240))
+        self.assertEqual(self.pixel(mirror, 173, 100), rgb(230))
 
     def test_nearest_sprite_wins_independent_of_thing_order(self):
         base = self.scene([], label="STIMA0") + [("MEDIA0", patch([[230]*16 for _ in range(32)], 8, 32))]
@@ -72,6 +73,16 @@ class ThingTests(unittest.TestCase):
         b = self.render(things(base, entries[::-1]), (0, 0, 0, 0))
         self.assertEqual(a, b)
         self.assertEqual(self.pixel(a, 160, 100), rgb(230))
+
+    def test_equal_scale_keeps_sector_insertion_order(self):
+        base = self.scene([], label="STIMA0") + [("MEDIA0", patch([[230]*16 for _ in range(32)], 8, 32))]
+        # Sector lists insert at the head. Stable scale sorting draws the first
+        # map thing last for equal scales, so reversing spawn order changes it.
+        entries = [(48,0,0,2011,7),(48,0,0,2012,7)]
+        a = self.render(things(base,entries),(0,0,0,0))
+        b = self.render(things(base,entries[::-1]),(0,0,0,0))
+        self.assertEqual(self.pixel(a,160,100),rgb(240))
+        self.assertEqual(self.pixel(b,160,100),rgb(230))
 
     def test_sprites_behind_and_in_front_of_masked_fence(self):
         names = ("NEARWALL", "FARWALL", "UPPER", "LOWER", "FENCE")
@@ -86,14 +97,19 @@ class ThingTests(unittest.TestCase):
         sides[20:28] = name("FENCE")
         geom = replace(geom, "SIDEDEFS", sides)
         behind = self.render(things(geom, [(128, 0, 0, 2011, 7)]) + art)
-        self.assertEqual(self.pixel(behind, 160, 100), rgb(200))
-        self.assertEqual(self.pixel(behind, 163, 100), rgb(240))
+        # Original tangent-table rounding puts the odd (transparent) column
+        # at x=160 and the even fence column at x=161.
+        self.assertEqual(self.pixel(behind, 160, 100), rgb(240))
+        self.assertEqual(self.pixel(behind, 161, 100), rgb(200))
         front = self.render(things(geom, [(32, 0, 0, 2011, 7)]) + art)
         self.assertEqual(self.pixel(front, 160, 100), rgb(240))
-        self.assertEqual(self.pixel(front, 163, 100), rgb(240))
+        self.assertEqual(self.pixel(front, 161, 100), rgb(240))
 
     def test_portal_lintel_hides_top_of_sprite(self):
-        geom = two_rooms()
+        # A lower front ceiling produces SIL_TOP in R_StoreWallRange. A patch
+        # unrealistically protruding through a lower *back* ceiling is not the
+        # same clipping case in vanilla.
+        geom = sectors(two_rooms(),first=(-16,32),second=(16,128))
         sides = bytearray(dict(geom)["SIDEDEFS"])
         sides[20:28] = name("-")
         art = artwork([[7]*8 for _ in range(128)], ("FARWALL", "UPPER", "LOWER"), ("FLOOR_A", "FLOOR_B", "CEILING"))
@@ -117,6 +133,10 @@ class ThingTests(unittest.TestCase):
 
     def test_fullbright_and_sector_lighting(self):
         base = self.scene([(48, 0, 0, 2011, 7)])
+        # Vanilla makes a nearby sprite fully lit in the default bright sector.
+        # A darker sector distinguishes ordinary lighting from fullbright.
+        sector=bytearray(dict(base)['SECTORS']);struct.pack_into('<h',sector,20,96)
+        base=replace(base,'SECTORS',bytes(sector))
         palette_maps = bytes(range(256)) + bytes([17]) * (33*256)
         base = replace(base, "COLORMAP", palette_maps)
         self.assertEqual(self.pixel(self.render(base, (0, 0, 0, 0)), 160, 100), rgb(17))

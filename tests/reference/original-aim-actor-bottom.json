@@ -1,0 +1,22 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimActorBottom": {
+      "code_offset": "0x2b881",
+      "file_offset": "0x6d895",
+      "hex": "8b15a8b902008b411429d089dae8ed18ffff8b1de8c1020039d87e0c",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2b9a8"
+        },
+        {
+          "offset": 20,
+          "object": 3,
+          "target": "0x2c1e8"
+        }
+      ]
+    }
+  }
+}

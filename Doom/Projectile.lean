@@ -17,6 +17,8 @@ inductive Event where
 
 structure Body where
   source : Nat
+  thinkerSerial : Nat := 0
+  lastlook : Nat := 0
   motion : Motion
   frame : Nat := TBALL1
   tics : Int32 := 4
@@ -28,7 +30,7 @@ structure Body where
 duration draw and half-step. Collision at the resulting point runs immediately. -/
 def spawn (source : Nat) (own dest : SolidThing) (shadow : Bool) (rng : DoomRandom)
     : Except String (Body × DoomRandom) := do
-  let (_,rng) := rng.nextPlay
+  let (look,rng) := rng.nextPlay
   let mut rng := rng
   let mut angle := Angle.fromVector (dest.x-own.x) (dest.y-own.y)
   if shadow then
@@ -46,7 +48,7 @@ def spawn (source : Nat) (own dest : SolidThing) (shadow : Bool) (rng : DoomRand
     z := own.z + Fixed.ofInt 32 + (⟨dz.raw >>> 1⟩ : Fixed),
     momx := dx, momy := dy, momz := dz, angle,
     floorz := own.floor, ceilingz := own.ceiling, height := Fixed.ofInt 8, noGravity := true }
-  return ({ source, motion, tics := max 1 (4-Int32.ofNat (roll &&& 3)) },nextRng)
+  return ({ source, lastlook := look % 4, motion, tics := max 1 (4-Int32.ofNat (roll &&& 3)) },nextRng)
 
 def explode (p : Body) (rng : DoomRandom) : Body × DoomRandom :=
   let (roll,rng) := rng.nextPlay

@@ -29,13 +29,14 @@ private def dump (w : Imp.World Fixture) (answer : Int := -1) : String := Id.run
   let a := w.actor
   let mut s := s!"{answer} {a.frame} {a.tics} {a.angle.raw.toNat} {if a.target.isSome then 1 else 0} {a.movedir} {a.movecount} {a.reaction} {a.threshold} {a.lastlook} {if a.ambush then 1 else 0} {if a.justHit then 1 else 0} {if a.justAttacked then 1 else 0} {w.rng.play.toNat} {w.host.own.x.raw} {w.host.own.y.raw} /"
   for e in w.events do
-    s := s ++ match e with | .sound n => s!" sound {n}" | .melee _ n => s!" damage {n}" | .missile _ => " missile"
+    s := s ++ match e with | .sound n => s!" sound {n}" | .melee _ n => s!" damage {n}" | .missile _ => " missile" | .hitscan _ => " hitscan"
   s := s ++ " /"
   for dir in w.host.moves do s := s ++ s!" {dir}"
   return s
 
 def main (args : List String) : IO Unit := do
-  let [path] := args | throw (IO.userError "usage: imp-probe commands")
+  let path::options := args | throw (IO.userError "usage: imp-probe commands")
+  let zombie := options == ["zombie"]
   let out ← IO.getStdout
   let mut w : Imp.World Fixture := { host := {}, actor := {id := 1}, rng := {} }
   for line in (← IO.FS.readFile path).splitOn "\n" do
@@ -63,7 +64,8 @@ def main (args : List String) : IO Unit := do
           target := {x := f 2,y := f 3,radius := Fixed.ofInt 16,health := Int32.ofInt v[19]!,shootable := v[19]! > 0},
           mask := n 7, sight := v[8]! != 0, heard := v[9]! != 0, shadow := v[11]! != 0 },
         actor := {
-          id := 1,angle := ⟨UInt32.ofInt v[4]!⟩,target := if v[5]! == 0 then none else some 0,
+          id := 1, kind := if zombie then 3004 else 3001,
+          frame := if zombie then ImpData.POSS_STND else ImpData.TROO_STND, angle := ⟨UInt32.ofInt v[4]!⟩,target := if v[5]! == 0 then none else some 0,
           movedir := n 6, ambush := v[10]! != 0, reaction := Int32.ofInt v[12]!, movecount := Int32.ofInt v[13]!,
           threshold := Int32.ofInt v[14]!,justHit := v[15]! != 0,justAttacked := v[16]! != 0,lastlook := n 17},
         rng := {play := UInt8.ofNat (n 18)} }

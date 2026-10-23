@@ -8,6 +8,13 @@ import Doom.Pickup
 
 namespace Doom.Status
 
+/-- STlib multi-icon state belongs to presentation history, not game tics. -/
+structure Widgets where
+  arms : Array (Option String) := Array.replicate 6 none
+  face : Option String := none
+  keys : Array (Option String) := Array.replicate 3 none
+  deriving Inhabited
+
 def faceName (index : Nat) : String :=
   let pain := index / 8
   if index == 40 then "STFGOD0" else if index == 41 then "STFDEAD0" else

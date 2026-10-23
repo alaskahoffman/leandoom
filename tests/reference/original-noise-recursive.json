@@ -1,0 +1,9 @@
+{
+  "exe_profile": "original-mul.json",
+  "byte_profiles": [
+    "original-noise-alert.json",
+    "original-noise-traversal.json",
+    "original-noise-opening.json"
+  ],
+  "scope": "Successful fuel-bounded original recursive sound evaluation implies execution of pinned instructions at arbitrary admitted nesting depth; includes actual child/parent returns, noise entry and accepted-fire composition. Does not prove sufficient fuel for all reachable states or live Lean worklist correspondence."
+}

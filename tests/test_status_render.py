@@ -60,8 +60,8 @@ class StatusRenderTests(unittest.TestCase):
 
     def test_view_center_and_weapon_shift_up_sixteen_pixels(self):
         geom=arena()+combat_art()
-        full=self.frame(geom)
-        bar=self.frame(geom+status_art())
+        full=self.frame(geom,'15:0')
+        bar=self.frame(geom+status_art(),'15:0')
         for x,y in [(0,0),(50,84),(200,100),(300,167)]:
             self.assertEqual(self.pixel(bar,x,y),self.pixel(full,x,y+16))
         self.assertEqual(self.pixel(bar,156,148),color(230))
@@ -118,7 +118,7 @@ class StatusRenderTests(unittest.TestCase):
         self.assertEqual(self.pixel(pixels,156,168),color(10))
 
     def test_dead_face_replaces_development_death_text(self):
-        geom=arena([(96,0,180,3004,7)])+combat_art()+status_art()
+        geom=arena([(160,0,180,3004,7)])+combat_art()+status_art()
         pixels=self.frame(geom,'2000:0')
         self.assertEqual(self.pixel(pixels,144,169),color(141))
         self.assertEqual(self.pixel(pixels,87,171),color(20))
@@ -140,16 +140,16 @@ class StatusRenderTests(unittest.TestCase):
             pixels=self.frame(geom,f'{ticks}:0')
             self.assertEqual(self.pixel(pixels,144,169),color(face))
         output=self.directory/'state.json'
-        self.run_cli(['combat','E1M1','5:8192',output],arena())
+        self.run_cli(['combat','E1M1','19:8192',output],arena())
         state=json.loads(output.read_text())
-        self.assertEqual(state['miscRng'],5)
-        self.assertEqual(state['rng'],1)
+        self.assertEqual(state['miscRng'],20)
+        self.assertEqual(state['rng'],6) # Player spawn, damage, four puff draws.
         self.assertEqual(state['shots'],1)
 
     def test_first_enemy_damage_drives_actual_playpal_red_and_face(self):
-        geom=arena([(96,0,180,3004,7)])+combat_art()+status_art()
+        geom=arena([(160,0,180,3004,7)])+combat_art()+status_art()
         output=self.directory/'damage.json'
-        for tic in range(1,101):
+        for tic in range(1,251):
             self.run_cli(['combat','E1M1',f'{tic}:0',output],geom)
             state=json.loads(output.read_text())
             if state['health']<100: break
@@ -158,7 +158,7 @@ class StatusRenderTests(unittest.TestCase):
         palette=1+min(7,(100-state['health']+7)//8)
         self.assertEqual(self.pixel(pixels,0,168),color(10,palette))
         pain=8*((100-state['health'])*5//101)
-        self.assertEqual(self.pixel(pixels,144,169),color(100+pain+7,palette))
+        self.assertEqual(self.pixel(pixels,144,169),color(100+pain+3,palette)) # Zombieman has circled to the right.
 
     def test_firing_face_uses_weapon_latch_until_ready_after_release(self):
         geom=arena()+combat_art()+status_art()

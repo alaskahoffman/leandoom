@@ -1,0 +1,9 @@
+{
+  "exe_profile": "original-mul.json",
+  "byte_profiles": [
+    "original-noise-alert.json",
+    "original-noise-traversal.json",
+    "original-noise-opening.json"
+  ],
+  "scope": "Complete original line iteration and finite parent-sector loop, with actual terminal/pruned child execution and all returns. Opening/child return contracts and per-iteration terminal conditions remain explicit. Fuel exhaustion is only a prefix. General recursive children, reachable frame invariants and live Lean worklist correspondence remain open."
+}

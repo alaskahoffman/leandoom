@@ -1,0 +1,12 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "fold": {
+      "code_offset": "0x41999",
+      "file_offset": "0x839ad",
+      "hex": "80f941720880f95a770380c12080fd41720880fd5a770380c52038e9",
+      "relocations": []
+    }
+  },
+  "scope": "Original ASCII case-fold blocks for CL and CH, and byte comparison. Comparator loop and caller join excluded."
+}

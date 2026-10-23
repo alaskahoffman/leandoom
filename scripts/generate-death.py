@@ -12,7 +12,7 @@ def data():
     assert len(rows)>900,len(rows)
     ids={r[-1]:i for i,r in enumerate(rows)}
     assert ids['S_NULL']==0
-    metas=[];chosen=set()
+    metas=[];chosen={'S_GIBS'}
     for kind,entry in re.findall(r'\{\s*// (MT_\w+)(.*?)\n    \}',src,re.S):
         if kind not in ('MT_PLAYER','MT_POSSESSED','MT_SHOTGUY','MT_SERGEANT','MT_TROOP','MT_BARREL'):continue
         f={k:v.strip() for v,k in re.findall(r'^\s*([^\n,]+),?\s*// (\w+)',entry,re.M)}

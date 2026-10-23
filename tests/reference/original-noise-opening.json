@@ -1,0 +1,70 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "opening": {
+      "code_offset": "0x2c340",
+      "file_offset": "0x6e354",
+      "hex": "5351525689c20fbf401883f8ff750431d2eb4c8b422e8b52328b58048b4a0439cb7d08891d34c00200eb06890d34c002008b188b3239f37e0e891d30c0020089352cc00200eb0c893530c00200891d2cc002008b1534c002002b1530c00200891538c002005e5a595bc3",
+      "relocations": [
+        {
+          "offset": 97,
+          "object": 3,
+          "target": "0x2c038"
+        },
+        {
+          "offset": 91,
+          "object": 3,
+          "target": "0x2c030"
+        },
+        {
+          "offset": 85,
+          "object": 3,
+          "target": "0x2c034"
+        },
+        {
+          "offset": 79,
+          "object": 3,
+          "target": "0x2c02c"
+        },
+        {
+          "offset": 73,
+          "object": 3,
+          "target": "0x2c030"
+        },
+        {
+          "offset": 65,
+          "object": 3,
+          "target": "0x2c02c"
+        },
+        {
+          "offset": 59,
+          "object": 3,
+          "target": "0x2c030"
+        },
+        {
+          "offset": 45,
+          "object": 3,
+          "target": "0x2c034"
+        },
+        {
+          "offset": 37,
+          "object": 3,
+          "target": "0x2c034"
+        }
+      ]
+    },
+    "neighbor": {
+      "code_offset": "0x26fc4",
+      "file_offset": "0x68fd8",
+      "hex": "0fbf42166bc0128b3d18c1020001f8893c248b780e39fb750f0fbf42186bc0120304248b400eeb0289f8",
+      "relocations": [
+        {
+          "offset": 9,
+          "object": 3,
+          "target": "0x2c118"
+        }
+      ]
+    }
+  },
+  "scope": "Original P_LineOpening including signed height selection, wrapping subtraction and actual return; neighboring-sector lookup with signed side indices and scratch-stack aliasing. Joined sound-line opening and neighbor selection; general recursive propagation remains open."
+}

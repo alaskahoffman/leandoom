@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x346f0",
+      "file_offset": "0x76704",
+      "hex": "535152565789c780382d750431c0eb41",
+      "relocations": []
+    },
+    "restore": {
+      "code_offset": "0x34741",
+      "file_offset": "0x76755",
+      "hex": "5f5e5a595bc3",
+      "relocations": []
+    }
+  },
+  "scope": "R_CheckTextureNumForName prologue, dash branch, shared restore. Table search excluded."
+}

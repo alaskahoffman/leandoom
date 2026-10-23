@@ -1,0 +1,40 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "thingEntry": {
+      "code_offset": "0x2c5a0",
+      "file_offset": "0x6e5b4",
+      "hex": "83ec04891c2485c07c3885d27c348b1dfcc0020039d87d2a3b1510c102007d22",
+      "relocations": [
+        {
+          "offset": 26,
+          "object": 3,
+          "target": "0x2c110"
+        },
+        {
+          "offset": 16,
+          "object": 3,
+          "target": "0x2c0fc"
+        }
+      ]
+    },
+    "thingLookup": {
+      "code_offset": "0x2c5c0",
+      "file_offset": "0x6e5d4",
+      "hex": "0fafd301d08b15f8c002008b148285d27410",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c0f8"
+        }
+      ]
+    },
+    "thingReturn": {
+      "code_offset": "0x2c5e2",
+      "file_offset": "0x6e5f6",
+      "hex": "b80100000083c404c3",
+      "relocations": []
+    }
+  }
+}

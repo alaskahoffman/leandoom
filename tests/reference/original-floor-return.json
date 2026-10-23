@@ -1,0 +1,29 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "a": {
+      "code_offset": "0x2fb7b",
+      "file_offset": "0x71b8f",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    },
+    "b": {
+      "code_offset": "0x2fba5",
+      "file_offset": "0x71bb9",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    },
+    "c": {
+      "code_offset": "0x2fbd7",
+      "file_offset": "0x71beb",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    },
+    "d": {
+      "code_offset": "0x2fc39",
+      "file_offset": "0x71c4d",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    }
+  }
+}

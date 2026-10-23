@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "thingSecond": {
+      "code_offset": "0x2c78d",
+      "file_offset": "0x6e7a1",
+      "hex": "bb10ba02008944241089ea8b442414e83ffaffff3b4424107507b801000000eb57",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    }
+  }
+}

@@ -17,12 +17,16 @@ Visual and audio fidelity require their own checks alongside simulation fidelity
 The initial behavioral target is ordinary DOS DOOM 1.9 single-player. Ultimate
 and Final DOOM executable variants must be identified separately. Before calling
 a comparison authoritative, record the reference revision/build, executable
-variant, IWAD/PWAD hashes, options, and input/demo. A pinned Chocolate Doom build
-will be the practical comparison reference; disputed behavior needs evidence from
-the selected DOS executable. Function-level references are now pinned to Chocolate
+variant, IWAD/PWAD hashes, options, and input/demo. The unchanged, hash-pinned
+shareware 1.9 DOS executable is the final behavioral reference; a pinned Chocolate
+Doom build provides broader diagnostic traces. Function-level references are pinned to Chocolate
 Doom 3.1.1 (`410d96855b5df5410ff591a90efeafa889119224`) with source hashes and
-compiler metadata in `tests/reference/`. A full-engine reference build and the
-DOS executable/IWAD profiles remain unpinned.
+compiler metadata in `tests/reference/`. Both full-engine reference builds and
+the DOS executable/IWAD profiles are now pinned. The original-executable observer
+currently covers level time, both RNG indices, player position, momentum and
+angle, and selected imp/zombieman state-machine fields; it does not yet capture
+the complete world state. See
+[demo comparison](DEMO_COMPARISON.md) for scope and reproducibility.
 
 These projects have complementary roles:
 
@@ -52,15 +56,15 @@ or complete-level gameplay comparison.
 
 | E1M1 feature | Map evidence | Current state |
 | --- | --- | --- |
-| Normal doors | Eight special-1 linedefs | Original use tracing and movement/clipping; activation and thinker scheduling still need ports |
+| Normal doors | Eight special-1 linedefs | Original use tracing and movement/clipping; activation-tic movement corrected, general thinker interleaving still pending |
 | Exit switch | One special-11 linedef | Original normal-exit request and switch texture behavior checked; intermission/E1M2 transition pending |
 | Fast lowering floor | One special-36 linedef, tag 1 | Original spawn/thinker rules and player-crossing/clipping integration checked |
 | Repeatable lift | One special-88 linedef, tag 2 | Original spawn/wait/return/reversal rules integrated; repeat crossings checked |
 | Scrolling walls | Eight special-48 linedefs, indices 352–359 | Original list/update behavior integrated and checked |
-| Nukage damage | Four special-7 sectors | Pending original damage handling |
+| Nukage damage | Four special-7 sectors | Original floor/clock gate and null-source damage integrated before use/fire and power counters; normal-spawn slime contact matches the comparison route |
 | Secrets | Three special-9 sectors | Original floor-equality discovery and one-time counting integrated; all three sectors checked |
 | Lighting | Specials 1, 8 and 12 | Original lighting kernels integrated; complete thinker order pending |
-| Combat | Medium single-player: four zombiemen, two imps, six barrels | Original hitscan, supported deaths, barrel blasts and imp AI/fireballs integrated; full damage and remaining enemy AI pending |
+| Combat | Medium single-player: four zombiemen, two imps, six barrels | Original hitscan, supported deaths, barrel blasts, imp/zombieman scheduling, damage thrust and walking-actor/corpse momentum integrated; full damage metadata and thinker interleaving pending |
 | Weapons | One single-player shotgun pickup | Original fist/pistol/shotgun switching and attack states integrated; seven pellets, one shell, WAD sprites and audio checked |
 | Sound and music | Digital DS effects, GENMIDI and D_E1M1 | Lean effects mixer and nine-voice OPL2 music play in the viewer; original-C audio profile checked, whole-engine event timing still incomplete |
 
@@ -72,6 +76,37 @@ textures/flats, menus and a validated end-to-end E1M1 run remain part of finishi
 this level. E1M1 completion is not established by rendering all its geometry.
 
 ## Immediate work: establish fidelity before adding gameplay
+
+The first-enemy E1M1 route now matches initialization and all 521 tics of the
+original-executable profile and the broader Chocolate profile. The DOS observer
+now includes enemy positions, XYZ momentum and signed health; it independently
+detected the former tic-426 difference before monster thrust/motion was repaired.
+The earlier tic-381 player damage mismatch is also fixed. The new 1,961-tic
+`shotgun-secret` route extends that encounter through imp death, slime damage,
+the second door, a lowering floor, secret supplies, shotgun pickup/auto-switch
+and three blasts. It exposed missing floor damage at tic 1,249 and a collected
+item retained as an inert scene slot at tic 1,828; both are fixed. All six
+complete routes pass (5,383 tics plus initialization, including their shared
+prefix), with repeatable original traces and deliberate corruption detection.
+DOS schema v6 now directly observes health, armor, ammo, weapon selection,
+weapon/flash state and countdowns, weapon XY, refire, extra light and secret count.
+The shotgun route matches these additional fields; layout evidence is checked
+against original instructions, with decoder failure tests and deliberate field
+mutations. It also captures live imp fireballs and explosions: all six shots
+and 414 projectile snapshots match the original executable, including position,
+momentum, angle, floor/ceiling bounds, source, spawn `lastlook`, state/countdown
+and missile flag. General pickup removal still uses the broader Chocolate profile.
+The 2,445-tic `e1m1-exit` route continues through the final imp, a closing door
+crushing its corpse, and the exit request. The latter is now captured directly
+from DOS `gameaction`, with original instruction and relocation evidence. The
+route exposed and fixed the corpse's stale death-state number at tic 2,243.
+Next, port and compare `G_DoCompleted`/intermission and expand observation to
+other spawned objects and their ordering. General
+damage metadata, dynamic thinker interleaving and DeathThink remain incomplete.
+The live enemy countdown has an all-32-bit correspondence theorem against an
+operational reference, plus a conditional composition rule; state-entry actions
+and whole-game correspondence remain unproved. See
+[the encounter evidence and proof scope](DEMO_COMPARISON.md#first-enemy-encounter-and-local-correspondence-proof).
 
 1. Pin the reference and build differential tests for integer/fixed arithmetic,
    lookup tables, BSP decisions, and RNG state. Investigate ambiguous overflow
@@ -393,8 +428,15 @@ Unsupported pending weapons, general
 thinker deletion and item respawn remain separate dependencies; the remaining
 prototype combat/inventory bridge does not establish their original timing.
 Pickup effects must preserve their position-check timing. Ticcmd demo
-encoding/turn quantization, mouse/joystick, weapon/special commands, full-tick
-traces, demo playback, and image comparisons remain pending. DOS `FixedDiv`
+encoding/turn quantization for recording, mouse/joystick, remaining weapon/special
+commands, full-state coverage, and image comparisons remain pending. The
+[demo comparison harness](DEMO_COMPARISON.md) now decodes a bounded vanilla E1M1
+profile, runs direct tic commands through both engines, and reports initial/per-tic
+differences in selected fields. The pinned movement, stationary-fire and moving-fire
+cases match their declared fields against both references. Live impact tracing
+exposed and verified a fix to player action/movement ordering: turn/thrust and
+view, then use/fire and counters, then XY/Z and pickups. General thinker ordering
+and complete-demo synchronization remain pending. DOS `FixedDiv`
 INT_MIN behavior is now covered by the arithmetic binary proof.
 
 Existing fixture tests remain useful for parser safety and prototype regressions; expectations
@@ -439,11 +481,50 @@ patch composition, flats, and sky selection. Resource overrides work across
 archives. Palette index 255 is a valid opaque color, and transparency is tracked
 separately. All decoding and rendering remain in Lean.
 
-Wall UVs interpolate perspective-correctly through near-plane clipping. Sidedef
-offsets and pegging flags set alignment. Floors/ceilings sample world coordinates.
-Masked midtextures are composited far-to-near within saved portal clips. The
-renderer uses actual WAD light tables with approximate distance/sector selection;
-sky projection is approximate, with upper walls suppressed between sky sectors.
+Walls now use the original unsigned angle clipping and fixed-point projection,
+scale interpolation per visible segment fragment, 20.12 edge accumulators,
+texture-column tangents and reciprocal vertical sampling. Floors and ceilings
+collect visplanes, split overlapping column ranges, and enumerate horizontal
+spans. The flat drawer reproduces R_DrawSpan's packed 6.10 coordinate arithmetic,
+including the carry from the low half into the high half. Sky sampling retains
+the original screen-angle table and 128-row wrap. The world renderer supplies
+integer distances/scales to the existing lighting tables. Sprites now use the
+original fixed transform, rotation and patch-origin rules, post clipping, saved
+wall silhouettes and stable scale sorting. Masked walls interleave with sprites
+instead of depending on a depth buffer. BSP back-child bounding boxes are tested
+against the solid-column list. The weapon overlay retains its half-unit midpoint.
+
+Texture and flat animations use directory order, absolute resource-index phase,
+eight-tic cadence and the pre-increment level clock. The single-patch texture
+column path ignores vertical placement offsets, reproducing the SKY1 -8 quirk.
+Opaque sampling keeps the original patch data pointer, including padding bytes at
+short-wall edges. The compositor shortens negatively clipped posts without moving
+the source pointer. Passive sprites use the randomized first spawn countdown.
+
+Evidence: the previous wall/plane/light/sky tests plus 4,590 sprite projection,
+post clipping and animation cases against extracted original C at both `-O0` and
+`-O2`. Integration checks cover nonstandard animation member names, tick boundaries,
+restart, missing endpoints, texture fast-path/compositor differences, mirrored
+origins, silhouette clipping and equal-scale sprite ties.
+
+`scripts/compare-render` remains unchanged. All seven repeated matched-state
+`e1m1-exit` samples and the independent sky-window sample now have zero differing
+pixels, including their status bars. The last route pixel came from NUKE24 post
+padding; the window sample's 177 differences came from TEKWALL1 compositing and
+an armor bonus's initial animation phase. An additional 61 composite-column cases
+match extracted R_DrawColumnInCache at both `-O0` and `-O2`; framebuffer tests cover
+the padding read and spawn animation boundaries, partitioning and restart.
+Artifacts: `artifacts/render-tightened-final` and
+`artifacts/render-tightened-sky-final`. The reference remains pinned Chocolate
+DOOM; this is neither original DOS video nor a rendering equivalence proof.
+Remaining work includes broader frame coverage, general render-only effect
+insertion history, non-power-of-two texture widths and original overflow behavior.
+
+Pickup HUD text now renders with the original WAD font at (0,0), uppercasing,
+four-pixel spaces, patch offsets, right-edge termination and 140-tic lifetime.
+Framebuffer tests cover font posts/spacing, expiration, sector-lit weapons and
+world brightening during a pistol flash. Message toggle/recall and chat remain
+outside this single-player pickup-message path.
 
 Evidence: 16 artwork test groups, 36 total Lean checks, and textured player-start
 renders for all 68 Freedoom maps. Pixel assertions cover composition, transparent
@@ -465,7 +546,8 @@ and standalone PWAD replacements. Initial idle cycles are synchronized; AI/actio
 and randomized spawn delays are not emulated.
 
 Remaining: actor behavior, texture animations,
-exact vanilla lighting/sky projection, and reference-engine image comparisons.
+exact vanilla projection and rasterization; reference-engine image comparisons
+now expose the remaining differences.
 The default viewer is textured; headless `render-flat` retains geometry diagnostics.
 
 Acceptance: recognizable original E1M1 views using user-supplied assets, with

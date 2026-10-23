@@ -75,7 +75,8 @@ def frames : Array Frame := #[
   ⟨809,"S_BEXP2","BEXP",32769,5,810,"A_Scream"⟩,
   ⟨810,"S_BEXP3","BEXP",32770,5,811,"NULL"⟩,
   ⟨811,"S_BEXP4","BEXP",32771,10,812,"A_Explode"⟩,
-  ⟨812,"S_BEXP5","BEXP",32772,10,0,"NULL"⟩
+  ⟨812,"S_BEXP5","BEXP",32772,10,0,"NULL"⟩,
+  ⟨895,"S_GIBS","POL5",0,-1,0,"NULL"⟩
 ]
 
 def info : Nat → Option Info

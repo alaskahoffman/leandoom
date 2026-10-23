@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "idle": {
+      "code_offset": "0x2d392",
+      "file_offset": "0x6f3a6",
+      "hex": "c781bc000000000000008b3580cf0200c1e607a18435010081e6ff1f00008b1cb08b411cf7eb0facd010050000010081e6ff0f00008947088b1cb5845a00008b411cf7eb0facd010050000200089470c5f5e595bc3",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x2cf80"
+        },
+        {
+          "offset": 59,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 20,
+          "object": 3,
+          "target": "0x13584"
+        }
+      ]
+    }
+  },
+  "scope": "No-attack A_WeaponReady suffix at 0x2d392 through actual RET; earlier gates and called actions are separate."
+}

@@ -25,7 +25,11 @@ def two_rooms(closed=False, far_texture="FARWALL"):
                               for a, b, flags, front, back in lines),
         "SIDEDEFS": sides,
         "SECTORS": sectors,
-        "SEGS": b"".join(pack("6H", a, b, 0, line, side, 0) for a, b, line, side in segs),
+        "SEGS": b"".join(pack("6H", a, b,
+                         16384 if vertices[b][1] > vertices[a][1] else
+                         49152 if vertices[b][1] < vertices[a][1] else
+                         0 if vertices[b][0] > vertices[a][0] else 32768,
+                         line, side, 0) for a, b, line, side in segs),
         "SSECTORS": pack("4H", 4, 0, 4, 4),
         "NODES": pack("12h2H", 64, 64, 0, -128, 64, -64, -64, 64,
                       64, -64, 64, 192, 0x8000, 0x8001),
@@ -42,7 +46,7 @@ class RenderTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def render(self, lumps, camera=None):
+    def render(self, lumps, camera=None, textured=False):
         path = self.directory / "map.wad"
         output = self.directory / "frame.ppm"
         path.write_bytes(wad(lumps))
@@ -50,6 +54,7 @@ class RenderTests(unittest.TestCase):
             args = ["render-flat", "E1M1", output, path]
         else:
             args = ["render-flat-at", "E1M1", output, *camera, path]
+        if textured:args[0]=args[0].replace('render-flat','render')
         result = subprocess.run([str(EXE), *map(str, args)], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         header, size, maximum, pixels = output.read_bytes().split(b"\n", 3)
@@ -72,16 +77,26 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(auto, self.render(two_rooms()))
 
     def test_portal_has_analytically_correct_bands(self):
-        pixels = self.render(two_rooms())
+        from test_assets import artwork,replace,patch,definitions,rgb
+        names=['NEARWALL','FARWALL','UPPER','LOWER']
+        art=artwork([[1]*8 for _ in range(128)],names,('FLOOR_A','FLOOR_B','CEILING'))
+        art=replace(art,'PNAMES',pack('I',4)+b''.join(name(n) for n in names))
+        art=replace(art,'TEXTURE1',definitions([(n,8,128,[(0,0,i)]) for i,n in enumerate(names)]))
+        art += [(n,patch([[31+i]*8 for _ in range(128)])) for i,n in enumerate(names)]
+        for i,n in enumerate(['FLOOR_A','FLOOR_B','CEILING']):art=replace(art,n,bytes([21+i])*4096)
+        geom=two_rooms()
+        sides=bytearray(dict(geom)['SIDEDEFS']);sides[20:28]=name('-')
+        pixels = self.render(replace(geom,'SIDEDEFS',bytes(sides))+art,textured=True)
         # Projection: y = 100 - (height - 25) * 160 / distance.
         # Near opening at x=64: top 42.5, bottom 122.5.
         # Far wall at x=192: top 80.8333, bottom 107.5.
-        # Pixel centers define half-open intervals.
-        bands = [(0, 42), (42, 81), (81, 107), (107, 122), (122, 200)]
+        # Original 20.12 edge stepping: upper-wall bottom floors to row 42;
+        # lower-wall top ceils to row 123. The far wall includes row 107.
+        bands = [(0,43,33),(43,81,23),(81,108,32),(108,123,22),(123,200,34)]
         colors = []
-        for first, last in bands:
+        for first, last, index in bands:
             band = {self.pixel(pixels, 160, y) for y in range(first, last)}
-            self.assertEqual(len(band), 1, (first, last, band))
+            self.assertEqual(band,{rgb(index)},(first,last,band))
             colors.append(band.pop())
         self.assertEqual(len(set(colors)), 5)
 

@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimActorGuard": {
+      "code_offset": "0x2b81a",
+      "file_offset": "0x6d82e",
+      "hex": "8b35acb902008b480839f1750ab801000000e9a3000000f6416804750cb8010000005d5f5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2b9ac"
+        }
+      ]
+    }
+  }
+}

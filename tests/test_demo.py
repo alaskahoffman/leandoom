@@ -43,18 +43,18 @@ class DemoTests(unittest.TestCase):
                 self.assertIn('does not depend on any axioms', line)
 
     def test_pistol_discharge_records_actual_ammo_and_trace(self):
-        self.assertIsNone(self.snapshot('4:8192')['weapon']['lastFire'])
-        s = self.snapshot('5:8192')
-        self.assertEqual(s['weapon']['lastFire'], dict(gun='pistol', tic=5, before=50, after=49, expected=1, traced=1))
+        self.assertIsNone(self.snapshot('18:8192')['weapon']['lastFire'])
+        s = self.snapshot('19:8192')
+        self.assertEqual(s['weapon']['lastFire'], dict(gun='pistol', tic=19, before=50, after=49, expected=1, traced=1))
         self.assertEqual(s['weapon']['bullets'], 49)
-        second = self.snapshot('19:8192')['weapon']['lastFire']
-        self.assertEqual((second['tic'], second['before'], second['after']), (19,49,48))
+        second = self.snapshot('33:8192')['weapon']['lastFire']
+        self.assertEqual((second['tic'], second['before'], second['after']), (33,49,48))
 
     def test_shotgun_pickup_and_seven_completed_traces(self):
         geometry = arena(extras=[(0,0,0,2001,7)])
-        a = self.snapshot('1:2,31:0,4:8192', geometry)['weapon']
-        b = self.snapshot('1:2,31:0,41:8192', geometry)['weapon']
-        self.assertEqual(a['lastFire'], dict(gun='shotgun', tic=36, before=8, after=7, expected=7, traced=7))
+        a = self.snapshot('1:2,45:0,4:8192', geometry)['weapon']
+        b = self.snapshot('1:2,45:0,41:8192', geometry)['weapon']
+        self.assertEqual(a['lastFire'], dict(gun='shotgun', tic=50, before=8, after=7, expected=7, traced=7))
         self.assertEqual((a['bullets'], a['shells']), (50,7))
         self.assertEqual(b['lastFire']['tic']-a['lastFire']['tic'], b['shotgunCycle'])
 
@@ -83,7 +83,7 @@ class DemoTests(unittest.TestCase):
         self.assertEqual(s['weapon']['bullets'],50)
 
     def test_autoaim_records_clipped_target_and_original_negative_rounding(self):
-        flat=self.snapshot('5:8192',arena([(96,0,0,3004,7)]))['aim']
+        flat=self.snapshot('19:8192',arena([(96,0,0,3004,7)]))['aim']
         w=flat['window']
         self.assertLess(flat['slope'],0)
         self.assertEqual(w['bottom'],max(w['targetBottom'],w['portalBottom']))
@@ -91,7 +91,7 @@ class DemoTests(unittest.TestCase):
         self.assertLessEqual(w['bottom'],flat['slope'])
         self.assertLessEqual(flat['slope'],w['top'])
         geometry=things(sectors(two_rooms(),first=(0,64),second=(24,128)),[(0,0,0,1,7),(96,0,0,3004,7)])
-        clipped=self.snapshot('5:8192',geometry)['aim']; w=clipped['window']
+        clipped=self.snapshot('19:8192',geometry)['aim']; w=clipped['window']
         self.assertLess(w['top'],w['targetTop'])
         self.assertEqual(w['top'],w['portalTop'])
         self.assertGreater(len(w['portals']),0)
@@ -100,18 +100,18 @@ class DemoTests(unittest.TestCase):
     def test_side_probe_does_not_redirect_the_pistol_horizontally(self):
         for y,offset in [(24,0x04000000),(-24,0xfc000000)]:
             with self.subTest(y=y):
-                aim=self.snapshot('5:8192',arena([(160,y,0,3004,7)]))['aim']
+                aim=self.snapshot('19:8192',arena([(160,y,0,3004,7)]))['aim']
                 self.assertIsNotNone(aim['window'])
                 self.assertEqual(aim['offset'],offset)
                 self.assertEqual(aim['pelletAngles'],[aim['facing']])
-        a=self.snapshot('5:8192',wall_scene())['aim']
+        a=self.snapshot('19:8192',wall_scene())['aim']
         self.assertIsNone(a['window'])
         self.assertEqual(a['slope'],0)
         self.assertIsNone(self.snapshot('5:8192,1:1024')['aim'])
 
     def test_shotgun_keeps_shared_autoaim_slope_and_seven_actual_angles(self):
         geometry=arena([(160,0,0,3004,7)],extras=[(0,0,0,2001,7)])
-        aim=self.snapshot('1:2,31:0,4:8192',geometry)['aim']
+        aim=self.snapshot('1:2,45:0,4:8192',geometry)['aim']
         self.assertIsNotNone(aim['window'])
         self.assertEqual(len(aim['pelletAngles']),7)
         self.assertGreater(len(set(aim['pelletAngles'])),1)
@@ -121,10 +121,10 @@ class DemoTests(unittest.TestCase):
             ('1:0',arena()),
             ('10:2,5:8192',arena()),
             ('10:4',arena()),
-            ('5:8192',arena([(96,0,0,3004,7)])),
-            ('5:8192',things(sectors(two_rooms(),first=(0,64),second=(24,128)),[(0,0,0,1,7),(96,0,0,3004,7)])),
-            ('5:8192',arena([(160,24,0,3004,7)])),
-            ('1:2,31:0,4:8192',arena([(160,0,0,3004,7)],extras=[(0,0,0,2001,7)])),
+            ('19:8192',arena([(96,0,0,3004,7)])),
+            ('19:8192',things(sectors(two_rooms(),first=(0,64),second=(24,128)),[(0,0,0,1,7),(96,0,0,3004,7)])),
+            ('19:8192',arena([(160,24,0,3004,7)])),
+            ('1:2,45:0,4:8192',arena([(160,0,0,3004,7)],extras=[(0,0,0,2001,7)])),
         ]
         with tempfile.TemporaryDirectory() as directory:
             path=pathlib.Path(directory)/'LiveProof.lean'
@@ -147,7 +147,7 @@ class DemoTests(unittest.TestCase):
                     with urllib.request.urlopen(base+route) as response:
                         return response.read()
                 self.assertIsNone(json.loads(read('/state'))['state'])
-                state=self.snapshot('5:8192'); path.write_text(json.dumps(state))
+                state=self.snapshot('19:8192'); path.write_text(json.dumps(state))
                 response=json.loads(read('/state'))
                 self.assertEqual(response['state'], state)
                 self.assertLess(response['age'],2)

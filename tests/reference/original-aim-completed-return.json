@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "pathRet8": {
+      "code_offset": "0x2cb11",
+      "file_offset": "0x6eb25",
+      "hex": "c20800",
+      "relocations": []
+    },
+    "aimReturn": {
+      "code_offset": "0x2bbff",
+      "file_offset": "0x6dc13",
+      "hex": "833df8b9020000740aa1b4b902005d5f5e59c331c05d5f5e59c3",
+      "relocations": [
+        {
+          "offset": 10,
+          "object": 3,
+          "target": "0x2b9b4"
+        },
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2b9f8"
+        }
+      ]
+    }
+  }
+}

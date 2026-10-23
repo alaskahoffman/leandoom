@@ -19,6 +19,17 @@ def main (args : List String) : IO UInt32 := do
         let w := weapon.toNat!
         c := { state := { weapon := { frame := Weapon.ready w } }, player := { readyWeapon := ⟨w%9,Nat.mod_lt _ (by decide)⟩, ammo := #v[Int32.ofInt bullets.toInt!,Int32.ofInt shells.toInt!,0,0], weapons := #v[true,true,owned == "1",false,false,false,false,false,false] } }
         rng := { play := seed.toNat!.toUInt8 }; angle := a.toNat!.toUInt32
+      | ["select",ready,pending,mask,choice,health,bullets,shells] =>
+        let owned := mask.toNat!
+        c := {
+          player := {
+            readyWeapon := ⟨ready.toNat!%9,Nat.mod_lt _ (by decide)⟩
+            pendingWeapon := ⟨pending.toNat!%10,Nat.mod_lt _ (by decide)⟩
+            weapons := Vector.ofFn (fun i => owned.testBit i.val)
+            health := Int32.ofInt health.toInt!
+            ammo := #v[Int32.ofInt bullets.toInt!,Int32.ofInt shells.toInt!,0,0] },
+          dead := health == "0" }
+        c := c.select (if choice == "9" then none else some choice.toNat!)
       | ["tick",attack,choice,bob,draws] =>
         let selection := if choice == "9" then none else some choice.toNat!
         c := Weapon.tick ({ c with attack := attack == "1", bob := ⟨Int32.ofInt bob.toInt!⟩ }.select selection)
@@ -43,6 +54,8 @@ def main (args : List String) : IO UInt32 := do
             events := events.push s!"shot:{(angle+(Int32.ofInt spread*262144).toUInt32).toNat}:{2*(roll%10+1)}"
             for _ in [:draws.toNat!] do rng := rng.nextPlay.2
         c := { c with time := c.time+1 }
+      | ["height",raw] =>
+        c := { c with state := { c.state with weapon := { c.state.weapon with y := ⟨Int32.ofInt raw.toInt!⟩ } } }
       | ["die"] =>
         c := Weapon.drop { c with dead := true, player := { c.player with health := 0 } }
       | _ => throw (IO.userError s!"bad command {line}")

@@ -1,0 +1,33 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "moveJoinBytes": {
+      "code_offset": "0x33169",
+      "file_offset": "0x7517d",
+      "hex": "89c18d70080fbf5e028b00c1e3100158208b018b58143b58380f9ec025ff0000008a16a390cf020084d2744c85c074488b298b45208b1d84350100c1e8130fbefa8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c8a760184f67456833d90cf020000744d",
+      "instructions": 45,
+      "relocations": [
+        {
+          "offset": 36,
+          "object": 3,
+          "target": "0x2cf90"
+        },
+        {
+          "offset": 55,
+          "object": 3,
+          "target": "0x13584"
+        },
+        {
+          "offset": 105,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 129,
+          "object": 3,
+          "target": "0x2cf90"
+        }
+      ]
+    }
+  }
+}

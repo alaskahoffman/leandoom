@@ -1,0 +1,29 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "call": {
+      "code_offset": "0x2e639",
+      "file_offset": "0x7064d",
+      "hex": "e852b00000",
+      "relocations": []
+    },
+    "entry": {
+      "code_offset": "0x39690",
+      "file_offset": "0x7b6a4",
+      "hex": "5156575589c189d589df8b1de04f07008b5b1c8d48038b431480e1fc8b500483c11885d2750289c389da8b731439f2750e5168283b0200e84414feff83c408837a04007420837a08647d078b521089d3eb168d42188b5b14e813ffffff8b5b108b5310eb038b5210",
+      "relocations": [
+        {
+          "offset": 51,
+          "object": 3,
+          "target": "0x23b28"
+        },
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x74fe0"
+        }
+      ]
+    }
+  },
+  "scope": "Allocator CALL, prologue, request rounding and rover/predecessor choice, first free traversal, and joined split/return/grouping entry. Suitable first free block required; general search/purge, heap construction and whole startup remain open."
+}

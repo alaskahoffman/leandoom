@@ -1,0 +1,130 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "tag": {
+      "code_offset": "0x399b0",
+      "file_offset": "0x7b9c4",
+      "hex": "538d58e8817b0c114a1d00740d68cc3d0200e84911feff83c40483fa647c16817b0400010000730d68f83d0200e82e11feff83c4048953085bc3",
+      "relocations": [
+        {
+          "offset": 14,
+          "object": 3,
+          "target": "0x23dcc"
+        },
+        {
+          "offset": 41,
+          "object": 3,
+          "target": "0x23df8"
+        }
+      ]
+    },
+    "unload": {
+      "code_offset": "0x24e30",
+      "file_offset": "0x66e44",
+      "hex": "535231db8d80000000008d92000000008b8308b702008178f4114a1d00741268ec000000688c2b0200e8b25cffff83c408ba650000008b8308b7020083c304e83c4b010083fb2875c75a5bc3",
+      "relocations": [
+        {
+          "offset": 18,
+          "object": 3,
+          "target": "0x2b708"
+        },
+        {
+          "offset": 37,
+          "object": 3,
+          "target": "0x22b8c"
+        },
+        {
+          "offset": 56,
+          "object": 3,
+          "target": "0x2b708"
+        }
+      ]
+    },
+    "stop": {
+      "code_offset": "0x24f90",
+      "file_offset": "0x66fa4",
+      "hex": "5352e899feffffb8982c010031d2bb0100000089155c2c0100e8f24a0100891d942c01005a5bc3",
+      "relocations": [
+        {
+          "offset": 8,
+          "object": 3,
+          "target": "0x12c98"
+        },
+        {
+          "offset": 21,
+          "object": 3,
+          "target": "0x12c5c"
+        },
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x12c94"
+        }
+      ]
+    },
+    "responder": {
+      "code_offset": "0x39aa0",
+      "file_offset": "0x7bab4",
+      "hex": "535152565783ec0889c78b1083fa0175478b40046631c03d00006d61753a8b47043d00656d610f8250040000760c3d00786d617418e94204000031c9891560540700890d34540700e92f040000891534540700e924040000",
+      "relocations": [
+        {
+          "offset": 62,
+          "object": 3,
+          "target": "0x75460"
+        },
+        {
+          "offset": 68,
+          "object": 3,
+          "target": "0x75434"
+        },
+        {
+          "offset": 79,
+          "object": 3,
+          "target": "0x75434"
+        }
+      ]
+    },
+    "responderReturn": {
+      "code_offset": "0x39f1c",
+      "file_offset": "0x7bf30",
+      "hex": "31c083c4085f5e5a595bc3",
+      "relocations": []
+    },
+    "choice": {
+      "code_offset": "0x2a3c8",
+      "file_offset": "0x6c3dc",
+      "hex": "8b435c8b50088b736cf7da39f27e0d8b783485ff740689fa89d8eb088b535c89d88b5230e8af6a0000",
+      "relocations": []
+    },
+    "guard": {
+      "code_offset": "0x2a38c",
+      "file_offset": "0x6c3a0",
+      "hex": "8b15dcb302008d04d50000000001d08d04850000000029d08d04c5000000008b93840000000578ae020039d0750e833d5c2c0100007405e8c8abffff",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2b3dc"
+        },
+        {
+          "offset": 38,
+          "object": 3,
+          "target": "0x2ae78"
+        },
+        {
+          "offset": 48,
+          "object": 3,
+          "target": "0x12c5c"
+        }
+      ]
+    }
+  },
+  "tables": {
+    "event": {
+      "offset": "0x12c98",
+      "hex": "000000000100000000786d61",
+      "relocations": []
+    }
+  },
+  "scope": "Actual DOS automap death guard, ten cache retags, AM_Stop and notification handoff to ST_Responder keydown processing. Separate conditional exit-event theorem returns to death-state selection; its event precondition is NOT the stored DOS notification."
+}

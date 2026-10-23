@@ -1,0 +1,105 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x2a460",
+      "file_offset": "0x6c474",
+      "hex": "56575583ec0c89c6891424895c240489cff64068040f84cc020000837e6c000f8ec2020000f6466b017410c74650000000008b465089464c8946488bae8400000085ed740b833de0b30200007502d1ff833c24000f84de000000f64669100f85d40000008b44240485c074148b908400000085d2740a837a70070f84b80000008b14248b04248b4e108b5e0c8b52108b400ce849b2000089c38d04bd0000000029f88d04c5000000008d1407c1e20f8b4e5c89d0c1fa1ff7794889c183ff287d363b7e6c7e318b4614894424088b04248b5424088b401429c281fa000040007e16e81a9cffffa801740d8d0c8d0000000081c300000080c1eb138d1c9d00000000895c24088b4424088b1d8435010001c389c88b1bf7eb0facd0108b564801c28b5c240889564889c88b9b845a0000f7eb0facd01001464c85ed0f84fa0000008b46348b006683780e0b750a8b4e6c39cf7c038d79ff81ffe80300007d17f685c4000000020f857c010000837d2c000f8572010000",
+      "relocations": [
+        {
+          "offset": 71,
+          "object": 3,
+          "target": "0x2b3e0"
+        },
+        {
+          "offset": 299,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 267,
+          "object": 3,
+          "target": "0x13584"
+        }
+      ]
+    },
+    "tenCall": {
+      "code_offset": "0x2fb76",
+      "file_offset": "0x71b8a",
+      "hex": "e8e5a8ffff",
+      "relocations": []
+    },
+    "fiveCall": {
+      "code_offset": "0x2fba0",
+      "file_offset": "0x71bb4",
+      "hex": "e8bba8ffff",
+      "relocations": []
+    },
+    "twentyCall": {
+      "code_offset": "0x2fbd2",
+      "file_offset": "0x71be6",
+      "hex": "e889a8ffff",
+      "relocations": []
+    },
+    "armor": {
+      "code_offset": "0x2a5d5",
+      "file_offset": "0x6c5e9",
+      "hex": "8b552885d2743a83fa017510bb0300000089fa89f8c1fa1ff7fbeb0b89fa89f8c1fa1f2bc2d1f88b4d2439c87c0989c8c74528000000008b552429c229c7895524",
+      "relocations": []
+    },
+    "health": {
+      "code_offset": "0x2a616",
+      "file_offset": "0x6c62a",
+      "hex": "8b5d2029fb895d2085db7d07c74520000000008b4424048985e40000008b85dc00000001f88985dc00000083f8647e0ac785dc00000064000000",
+      "relocations": []
+    },
+    "actor": {
+      "code_offset": "0x2a650",
+      "file_offset": "0x6c664",
+      "hex": "83ff647d0489fbeb05bb640000008b15dcb302008d04d50000000001d08d04850000000029d08d04c5000000000578ae020039c57514b82800000001dbba0a00000083c328e8b614ffff8b5e6c29fb895e6c85db7f10",
+      "relocations": [
+        {
+          "offset": 46,
+          "object": 3,
+          "target": "0x2ae78"
+        },
+        {
+          "offset": 16,
+          "object": 3,
+          "target": "0x2b3dc"
+        }
+      ]
+    },
+    "tactile": {
+      "code_offset": "0x1bb50",
+      "file_offset": "0x5db64",
+      "hex": "51565789c689d189df833d3c920200000f84db000000",
+      "relocations": [
+        {
+          "offset": 11,
+          "object": 3,
+          "target": "0x2923c"
+        }
+      ]
+    },
+    "tactileReturn": {
+      "code_offset": "0x1bc41",
+      "file_offset": "0x5dc55",
+      "hex": "5f5e59c3",
+      "relocations": []
+    },
+    "killHandoff": {
+      "code_offset": "0x2a6a6",
+      "file_offset": "0x6c6ba",
+      "hex": "8b44240489f2e8fffbffff",
+      "relocations": []
+    },
+    "corpse": {
+      "code_offset": "0x2a2b0",
+      "file_offset": "0x6c2c4",
+      "hex": "535156575589c189d38b526881e2fbbffffe8b735889536883fe127404806369fd8b7b688b6b4481cf00041000c1fd02897b68896b44",
+      "relocations": []
+    }
+  },
+  "scope": "Ordinary null-source lethal player damage through P_KillMobj corpse setup, stopping before kill-credit bookkeeping."
+}

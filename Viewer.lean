@@ -32,6 +32,7 @@ private def runViewer (mapName : String) (paths : List String) (limit : Nat) (au
     let mut accumulator := 0.0
     let mut previous ← Platform.seconds
     let mut fuzzPhase : Fuzz.Phase := 0
+    let mut previousFrame : Option IndexedFrame := none
     let mut count := 0
     let begin := previous
     let mut lastSnapshot := previous - 1
@@ -49,6 +50,8 @@ private def runViewer (mapName : String) (paths : List String) (limit : Nat) (au
         IO.println (if flying then "Free camera" else "Walking")
       if keyDown keys 1024 && !keyDown priorKeys 1024 then
         state := { state.restart with restartHeld := true }
+        -- ST_Start requests a full widget refresh on the next presentation.
+        previousFrame := previousFrame.map (fun f => { f with statusWidgets := none })
         if let some p := playback then
           playback := some { p with music := p.initial }
           Platform.clearAudio
@@ -77,9 +80,10 @@ private def runViewer (mapName : String) (paths : List String) (limit : Nat) (au
         if now - lastSnapshot ≥ 0.05 then
           Demo.writeSnapshot path (Demo.snapshot state flying keys)
           lastSnapshot := now
-      let (pixels, nextPhase) ← checked (state.drawFrame assets (if flying then some camera else none) fuzzPhase)
-      fuzzPhase := nextPhase
-      Platform.present pixels
+      let frame ← checked (state.drawIndexedFrame assets (if flying then some camera else none) fuzzPhase previousFrame)
+      fuzzPhase := frame.phase
+      Platform.present frame.rgb
+      previousFrame := some frame
       count := count + 1
       if limit > 0 && count ≥ limit then break
     let elapsed := (← Platform.seconds) - begin

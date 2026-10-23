@@ -108,13 +108,16 @@ def setState (frames : Array Frame) (body : Body) (world : World) (id : Nat)
     if body.tics != 0 then return (body,world)
   throw "death: infinite state cycle"
 
-/-- Original P_KillMobj. Damage has already made health nonpositive; the caller
-owns that gate. State entry effects precede the timing draw, then item spawning.
-Drop/weapon/automap effects are explicit requests. -/
-def kill (frames : Array Frame) (body : Body) (world : World) : Except String (Body × World) := do
+/-- Initial P_KillMobj corpse transformation, before credit and player effects. -/
+def corpse (body : Body) : Body := Id.run do
   let mut body := { body with flags := body.flags &&& ~~~(4 ||| 0x4000 ||| 0x1000000 : UInt32) }
   if body.kind != 3006 then body := { body with flags := body.flags &&& ~~~(0x200 : UInt32) }
-  body := { body with flags := body.flags ||| 0x100000 ||| 0x400, height := ⟨body.height.raw >>> 2⟩ }
+  return { body with flags := body.flags ||| 0x100000 ||| 0x400, height := ⟨body.height.raw >>> 2⟩ }
+
+/-- Kill credit and immediate player-death bookkeeping, before automap and
+state entry. Weapon lowering is emitted as an explicit request. -/
+def bookkeeping (body : Body) (world : World) : Body × World := Id.run do
+  let mut body := body
   let mut world := world
   if let some (some source) := world.source then
     let mut player := world.players[source]
@@ -130,17 +133,43 @@ def kill (frames : Array Frame) (body : Body) (world : World) : Except String (B
     player := { player with dead := true }
     body := { body with flags := body.flags &&& ~~~(2 : UInt32) }
     world := { world with players := world.players.set victim player, events := world.events.push (.dropWeapon victim.val) }
-    if victim == world.console && world.automap then
-      world := { world with automap := false, events := world.events.push .stopAutomap }
-  let state := if body.health < -body.info.spawnHealth && body.info.extreme != 0 then body.info.extreme else body.info.normal
-  (body,world) ← setState frames body world state
+  return (body,world)
+
+/-- Only the console player's death closes an active automap. -/
+def shouldStopAutomap (victim : Fin 4) (world : World) : Bool :=
+  victim == world.console && world.automap
+
+/-- The original strict extreme-death threshold, with Int32 negation. -/
+def deathState (health : Int32) (info : Info) : Nat :=
+  if health < -info.spawnHealth && info.extreme != 0 then info.extreme else info.normal
+
+/-- One gameplay RNG draw after death-state entry, then the vanilla duration clamp. -/
+def randomizeTics (body : Body) (world : World) : Body × World :=
   let (roll,rng) := world.rng.nextPlay
-  body := { body with tics := max 1 (body.tics - Int32.ofNat (roll &&& 3)) }
-  world := { world with rng }
+  ({ body with tics := max 1 (body.tics - Int32.ofNat (roll &&& 3)) },{ world with rng })
+
+/-- Final item-drop dispatch, after the death-state timing draw. -/
+def dropItem (body : Body) (world : World) : Body × World := Id.run do
+  let mut world := world
   if world.chex then return (body,world)
   let item := match body.kind with | 84 | 3004 => 2007 | 9 => 2001 | 65 => 2002 | _ => 0
   if item != 0 then world := { world with events := world.events.push (.drop item) }
   return (body,world)
+
+/-- Original P_KillMobj. Damage has already made health nonpositive; the caller
+owns that gate. State entry effects precede the timing draw, then item spawning.
+Drop/weapon/automap effects are explicit requests. -/
+def kill (frames : Array Frame) (body : Body) (world : World) : Except String (Body × World) := do
+  let (deadBody,world) := bookkeeping (corpse body) world
+  let mut body := deadBody
+  let mut world := world
+  if let some victim := body.player then
+    if shouldStopAutomap victim world then
+      world := { world with automap := false, events := world.events.push .stopAutomap }
+  let state := deathState body.health body.info
+  (body,world) ← setState frames body world state
+  (body,world) := randomizeTics body world
+  return dropItem body world
 
 /-- Original finite-state countdown branch of P_MobjThinker. Movement, nightmare
 respawn and general thinker interleaving are separate stages. -/

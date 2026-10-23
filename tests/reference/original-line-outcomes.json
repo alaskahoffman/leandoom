@@ -1,0 +1,197 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "finish": {
+      "code_offset": "0x2c6bb",
+      "file_offset": "0x6e6cf",
+      "hex": "89c285c07d0eb80100000083c4105d5e5a595bc3833d24c002000074183d000001007d1183793200750b31c083c4105d5e5a595bc38b1528c0020083c20cc742f8010000008942f4894afcb801000000891528c0020083c4105d5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 82,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 55,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 22,
+          "object": 3,
+          "target": "0x2c024"
+        }
+      ]
+    },
+    "cell": {
+      "code_offset": "0x2c541",
+      "file_offset": "0x6e555",
+      "hex": "0fafd301d08b1500c102000fbf04428b150cc1020001c001c2eb236bc03e8b1d20c1020001d88b3d803501003b7836740a897836ff142485c0741083c2020fbf0283f8ff75d5",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c100"
+        },
+        {
+          "offset": 40,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x2c120"
+        },
+        {
+          "offset": 17,
+          "object": 3,
+          "target": "0x2c10c"
+        }
+      ]
+    },
+    "lineEntry": {
+      "code_offset": "0x2c520",
+      "file_offset": "0x6e534",
+      "hex": "5783ec04891c2485c07c5c85d27c588b1dfcc0020039d87d4e3b1510c102007d46",
+      "relocations": [
+        {
+          "offset": 27,
+          "object": 3,
+          "target": "0x2c110"
+        },
+        {
+          "offset": 17,
+          "object": 3,
+          "target": "0x2c0fc"
+        }
+      ]
+    },
+    "lineReturn": {
+      "code_offset": "0x2c587",
+      "file_offset": "0x6e59b",
+      "hex": "b80100000083c4045fc3",
+      "relocations": []
+    },
+    "helper": {
+      "code_offset": "0x2c2d0",
+      "file_offset": "0x6e2e4",
+      "hex": "535156575589c689d18b58088b420cc1f808f7eb0facd01089c78b41088b5e0cc1f808f7eb0facd01029c7750431c0eb2d8b012b068b590cc1f808f7eb0facd01089c58b46042b41048b5908c1f808f7eb0facd01089fa01e8e8520effff5d5f5e595bc3",
+      "relocations": []
+    },
+    "setup": {
+      "code_offset": "0x2c691",
+      "file_offset": "0x6e6a5",
+      "hex": "8b018b008904248b018b4004894424048b4108894424088b410c89e28944240cb810ba0200e815fcffff",
+      "relocations": [
+        {
+          "offset": 33,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    },
+    "division": {
+      "code_offset": "0x1d180",
+      "file_offset": "0x5f194",
+      "hex": "53515689c189d39931d029d089c689d8c1fe0e9931d029d039c67c1531cb85db0f9cc025ff00000005ffffff7f5e595bc389c8990fa4c210c1e010f7fb5e595bc3",
+      "relocations": []
+    },
+    "entry": {
+      "code_offset": "0x2c5f0",
+      "file_offset": "0x6e604",
+      "hex": "535152565583ec1089c18b1518ba020081fa000010007f1e8b1d1cba020081fb000010007f1081fa0000f0ff7c0881fb0000f0ff7d278b01bb10ba02008b50048b00e8a9fbffff",
+      "relocations": [
+        {
+          "offset": 57,
+          "object": 3,
+          "target": "0x2ba10"
+        },
+        {
+          "offset": 26,
+          "object": 3,
+          "target": "0x2ba1c"
+        },
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x2ba18"
+        }
+      ]
+    },
+    "firstShort": {
+      "code_offset": "0x2c64d",
+      "file_offset": "0x6e661",
+      "hex": "8b1514ba0200a110ba020089cbe8b1f9ffff",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2ba10"
+        },
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2ba14"
+        }
+      ]
+    },
+    "secondWide": {
+      "code_offset": "0x2c637",
+      "file_offset": "0x6e64b",
+      "hex": "89c68b4104bb10ba02008b50048b00e895fbffffeb36",
+      "relocations": [
+        {
+          "offset": 6,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    },
+    "secondShort": {
+      "code_offset": "0x2c65f",
+      "file_offset": "0x6e673",
+      "hex": "8b1514ba02008b2d1cba02008b1d18ba020089c6a110ba020001ea01d889cbe88df9ffff39c6750ab801000000e980000000",
+      "relocations": [
+        {
+          "offset": 21,
+          "object": 3,
+          "target": "0x2ba10"
+        },
+        {
+          "offset": 14,
+          "object": 3,
+          "target": "0x2ba18"
+        },
+        {
+          "offset": 8,
+          "object": 3,
+          "target": "0x2ba1c"
+        },
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2ba14"
+        }
+      ]
+    },
+    "secondReturn": {
+      "code_offset": "0x2c711",
+      "file_offset": "0x6e725",
+      "hex": "83c4105d5e5a595bc3",
+      "relocations": []
+    },
+    "lineSide": {
+      "code_offset": "0x2c010",
+      "file_offset": "0x6e024",
+      "hex": "5156575589d9837b080075288b113b027f1183790c000f9fc025ff0000005d5f5e59c383790c000f9cc025ff0000005d5f5e59c383790c0075298b013b50047f11837908000f9cc025ff0000005d5f5e59c3837908000f9fc025ff0000005d5f5e59c38b3189c38b3e8b410c8b6e04c1f81029fb89d6f7eb0facd01089c78b590829eec1fb1089f0f7eb0facd01039f87d0731c05d5f5e59c3b8010000005d5f5e59c3",
+      "relocations": []
+    },
+    "divlineSide": {
+      "code_offset": "0x2c1e0",
+      "file_offset": "0x6e1f4",
+      "hex": "5156575589c689d989d0837b080075263b337f1183790c000f9fc025ff0000005d5f5e59c383790c000f9cc025ff0000005d5f5e59c3837b0c0075273b41047f11837908000f9cc025ff0000005d5f5e59c3837908000f9fc025ff0000005d5f5e59c389f38b398b510829fb89c78b410c8b690431d029ef31d831f8a900000080740d33590cf7c3000000807428eb2d8b410cc1fb08c1f808f7eb0facd01089c68b590889f8c1fb08c1f808f7eb0facd01039f07d0731c05d5f5e59c3b8010000005d5f5e59c3",
+      "relocations": []
+    }
+  }
+}

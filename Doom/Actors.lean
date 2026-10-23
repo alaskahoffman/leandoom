@@ -35,7 +35,10 @@ structure Actor where
   thing : Nat
   kind : Nat
   health : Nat
+  /-- Vertical mobj momentum; horizontal momentum belongs to the linked scene. -/
+  momz : Fixed := ⟨0⟩
   death : Option Death.Body := none
+  /-- Shared original imp/zombieman brain; legacy field name. -/
   imp : Option Imp.State := none
   /-- Barrel target is assigned by a surviving hit, before a later explosion. -/
   damageTarget : Option Nat := none

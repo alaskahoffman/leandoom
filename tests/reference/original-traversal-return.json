@@ -1,0 +1,23 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "interceptReturn": {
+      "code_offset": "0x2c887",
+      "file_offset": "0x6e89b",
+      "hex": "b801000000890d28c0020083c4045f5e595bc3",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c028"
+        }
+      ]
+    },
+    "pathCleanup": {
+      "code_offset": "0x2cb0b",
+      "file_offset": "0x6eb1f",
+      "hex": "83c4305d5f5e",
+      "relocations": []
+    }
+  }
+}

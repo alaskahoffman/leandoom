@@ -1,0 +1,82 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "init": {
+      "code_offset": "0x2c8a0",
+      "file_offset": "0x6e8b4",
+      "hex": "56575583ec3089c689d789dd8b442440ba20ba02008b1d8035010083e004891528c002008b1504c10200a324c0020089f04329d0891d80350100a9ffff7f00750681c6000001008b1d08c1020089f829d8a9ffff7f00750681c70000010089e88b1508c1020029f08b1d04c10200a318ba020089c8893510ba020029f8893d14ba0200a31cba0200a104c1020029dd29c629d189f029d7c1f81789ca8944240c89f829fac1f81789f38944241089e8c1fb07c1f8178944241489c881e3ffff0000c1f817895c240889442418",
+      "relocations": [
+        {
+          "offset": 17,
+          "object": 3,
+          "target": "0x2ba20"
+        },
+        {
+          "offset": 23,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 38,
+          "object": 3,
+          "target": "0x2c104"
+        },
+        {
+          "offset": 43,
+          "object": 3,
+          "target": "0x2c024"
+        },
+        {
+          "offset": 54,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 73,
+          "object": 3,
+          "target": "0x2c108"
+        },
+        {
+          "offset": 98,
+          "object": 3,
+          "target": "0x2c108"
+        },
+        {
+          "offset": 106,
+          "object": 3,
+          "target": "0x2c104"
+        },
+        {
+          "offset": 111,
+          "object": 3,
+          "target": "0x2ba18"
+        },
+        {
+          "offset": 119,
+          "object": 3,
+          "target": "0x2ba10"
+        },
+        {
+          "offset": 127,
+          "object": 3,
+          "target": "0x2ba14"
+        },
+        {
+          "offset": 132,
+          "object": 3,
+          "target": "0x2ba1c"
+        },
+        {
+          "offset": 137,
+          "object": 3,
+          "target": "0x2c104"
+        }
+      ]
+    }
+  }
+}

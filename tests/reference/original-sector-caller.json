@@ -1,0 +1,107 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "sectorEntryBytes": {
+      "code_offset": "0x2fb20",
+      "file_offset": "0x71b34",
+      "hex": "5351525689c68b008b48348b098b50143b110f8501010000668b510e83ea046683fa0c0f87de00000081e2ffff00002eff2495ecfa0200",
+      "relocations": [
+        {
+          "offset": 51,
+          "object": 1,
+          "target": "0x2faec"
+        }
+      ]
+    },
+    "sectorSecretBytes": {
+      "code_offset": "0x2fbdc",
+      "file_offset": "0x71bf0",
+      "hex": "ff86d400000066c7410e00005e5a595bc3",
+      "relocations": []
+    },
+    "sectorReturnBytes": {
+      "code_offset": "0x2fc39",
+      "file_offset": "0x71c4d",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    },
+    "sectorTableBytes": {
+      "code_offset": "0x2faec",
+      "file_offset": "0x71b00",
+      "hex": "aafb020057fb020027fc020080fb020027fc0200dcfb020027fc0200edfb020027fc020027fc020027fc020027fc0200aafb0200",
+      "relocations": [
+        {
+          "offset": 48,
+          "object": 1,
+          "target": "0x2fbaa"
+        },
+        {
+          "offset": 44,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 40,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 36,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 32,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 28,
+          "object": 1,
+          "target": "0x2fbed"
+        },
+        {
+          "offset": 24,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 20,
+          "object": 1,
+          "target": "0x2fbdc"
+        },
+        {
+          "offset": 16,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2fb80"
+        },
+        {
+          "offset": 8,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 4,
+          "object": 1,
+          "target": "0x2fb57"
+        },
+        {
+          "offset": 0,
+          "object": 1,
+          "target": "0x2fbaa"
+        }
+      ]
+    },
+    "sectorCallerBytes": {
+      "code_offset": "0x333d0",
+      "file_offset": "0x753e4",
+      "hex": "8b028b40348b006683780e00740789d0e83bc7ffff",
+      "relocations": []
+    }
+  }
+}

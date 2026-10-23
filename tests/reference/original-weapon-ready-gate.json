@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "gate": {
+      "code_offset": "0x2d333",
+      "file_offset": "0x6f347",
+      "hex": "8379740a75068379200075218b59708d049d0000000029d831d28b1cc5982d010089c8e8e5fcffff5f5e595bc3f6410f01742c83b9bc00000000740d8b717083fe04742583fe06742089c8c781bc00000001000000e8830000005f5e595bc3",
+      "relocations": [
+        {
+          "offset": 29,
+          "object": 3,
+          "target": "0x12d98"
+        }
+      ]
+    }
+  },
+  "scope": "A_WeaponReady decision suffix: pending/death priority, attack/latch gates, actual lower/fire CALL boundaries and their return epilogues. Entry pose reset and chainsaw gate are separate."
+}

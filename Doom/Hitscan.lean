@@ -27,19 +27,40 @@ structure ShotResult where
   events : Array ShotEvent := #[]
   path : PathResult
 
+/-- Integer-map-unit range multiplication used by the live attack trace.
+This intentionally differs from FixedMul for fractional ranges. -/
+def SolidThing.attackEndpoint (thing : SolidThing) (angle : Angle) (distance : Fixed) : Fixed × Fixed :=
+  (thing.x + (⟨(distance.raw >>> 16) * angle.fineCosine.raw⟩ : Fixed),
+   thing.y + (⟨(distance.raw >>> 16) * angle.fineSine.raw⟩ : Fixed))
+
 private def Scene.attackPath (scene : Scene) (shooter : Nat) (angle : Angle)
     (distance : Fixed) : Except String (SolidThing × PathResult) := do
   if distance.raw ≤ 0 then throw "hitscan: range must be positive"
   let some thing := scene.things[shooter]? | throw "hitscan: invalid shooter"
   -- Original integer-map-unit range multiplication, not FixedMul.
-  let x := thing.x + (⟨(distance.raw >>> 16) * angle.fineCosine.raw⟩ : Fixed)
-  let y := thing.y + (⟨(distance.raw >>> 16) * angle.fineSine.raw⟩ : Fixed)
+  let (x,y) := thing.attackEndpoint angle distance
   -- P_PathTraverse collects before invoking any callbacks. Sort once here, then
   -- consume that ordered list below, stopping at the original callback boundary.
   return (thing, ← scene.pathTraverse thing.x thing.y x y 3 (fun _ _ => true))
 
-private def shootHeight (t : SolidThing) : Fixed :=
+/-- Factoring out the endpoint leaves the original live trace definition unchanged. -/
+theorem Scene.attackPath_original (scene : Scene) (shooter : Nat) (angle : Angle)
+    (distance : Fixed) : scene.attackPath shooter angle distance = (do
+      if distance.raw ≤ 0 then throw "hitscan: range must be positive"
+      let some thing := scene.things[shooter]? | throw "hitscan: invalid shooter"
+      let x := thing.x + (⟨(distance.raw >>> 16) * angle.fineCosine.raw⟩ : Fixed)
+      let y := thing.y + (⟨(distance.raw >>> 16) * angle.fineSine.raw⟩ : Fixed)
+      return (thing, ← scene.pathTraverse thing.x thing.y x y 3 (fun _ _ => true))) := rfl
+
+def SolidThing.shootHeight (t : SolidThing) : Fixed :=
   t.z + (⟨t.height.raw >>> 1⟩ : Fixed) + Fixed.ofInt 8
+
+/-- Initial vertical autoaim bounds, in Doom's 16.16 slope representation. -/
+def aimTopSlope : Fixed := ⟨40960⟩
+def aimBottomSlope : Fixed := ⟨-40960⟩
+
+theorem SolidThing.shootHeight_original (t : SolidThing) :
+    t.shootHeight=t.z+(⟨t.height.raw >>> 1⟩ : Fixed)+Fixed.ofInt 8 := rfl
 
 private def stopped (path : PathResult) (count : Nat) : PathResult :=
   { path with completed := false, visited := path.visited.extract 0 count }
@@ -49,9 +70,9 @@ shootable actor's visible height. Solid decorations are not shooting targets. -/
 def Scene.aimLineAttack (scene : Scene) (shooter : Nat) (angle : Angle)
     (distance : Fixed) : Except String AimResult := do
   let (thing,path) ← scene.attackPath shooter angle distance
-  let z := shootHeight thing
-  let mut top : Fixed := ⟨40960⟩
-  let mut bottom : Fixed := ⟨-40960⟩
+  let z := thing.shootHeight
+  let mut top := aimTopSlope
+  let mut bottom := aimBottomSlope
   let mut portals : Array AutoAim.Portal := #[]
   for i in [:path.visited.size] do
     let hit := path.visited[i]!
@@ -87,7 +108,7 @@ def Scene.lineAttack (scene : Scene) (shooter : Nat) (angle : Angle)
     (sky : Nat → Bool × Bool := fun _ => (false,false))
     (noBlood : Nat → Bool := fun _ => false) : Except String ShotResult := do
   let (thing,path) ← scene.attackPath shooter angle distance
-  let z := shootHeight thing
+  let z := thing.shootHeight
   let mut events := #[]
   for i in [:path.visited.size] do
     let hit := path.visited[i]!

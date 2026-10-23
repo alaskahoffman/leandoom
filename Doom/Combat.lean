@@ -1,5 +1,7 @@
 import Doom.ProjectileRuntime
 import Doom.Radius
+import Doom.PlayerDamage
+import Doom.PlayerDeath
 
 namespace Doom
 
@@ -47,28 +49,80 @@ private def Simulation.notice (s : Simulation) (message : String) : Simulation :
 private def sourceCredit (source : Option Nat) : Option (Option (Fin 4)) :=
   source.map fun id => if id == 0 then some 0 else none
 
-private def Simulation.hurtPlayer (s : Simulation) (damage : Nat) (source : Option Nat) : Simulation := Id.run do
-  let inventory := s.inventory.damage damage
-  if inventory.health == s.inventory.health then return s
+private def Simulation.hurtPlayer (s : Simulation) (damage : Nat) (source : Option Nat)
+    (inflictor : Option PlayerDamage.Inflictor := none) : Simulation := Id.run do
+  let .ok scene := s.player.syncScene s.map | return { s with physicsError := some "damage: missing player scene" }
+  let target := scene.things[0]!
+  let inflictor := inflictor.orElse fun _ => source.bind fun id => scene.things[id]?.map fun t => ⟨t.x,t.y,t.z⟩
+  let inventory := s.inventory
+  let state : PlayerDamage.State := {
+    x := target.x, y := target.y, z := target.z, momx := target.momx, momy := target.momy,
+    momz := s.player.body.momz, health := Int32.ofNat inventory.health,
+    playerHealth := Int32.ofNat inventory.health, armor := Int32.ofNat inventory.armor,
+    armorType := Int32.ofNat inventory.armorType, damageCount := inventory.pickupState.damageCount,
+    shootable := target.shootable, noClip := target.moveFlags.noClip,
+    invulnerable := inventory.invulnerability > 0,
+    sectorSpecial := Int32.ofInt s.map.sectors[target.sector]!.special }
+  let result := PlayerDamage.apply state (Int32.ofNat damage) inflictor
+    (source == some 0 && inventory.toPickup.readyWeapon == 7) false s.rng
+  let body := { s.player.body with momx := result.state.momx, momy := result.state.momy, momz := result.state.momz }
+  let target := { target with momx := body.momx, momy := body.momy, health := result.state.health }
+  let player := { s.player with body, scene := some { scene with things := scene.things.set! 0 target } }
+  let mut s := { s with player, rng := result.rng }
+  if !result.applied then return s
+  let inventory := Inventory.fromPickup { inventory.toPickup with
+    health := result.state.playerHealth, bodyHealth := result.state.health,
+    armor := result.state.armor, armorType := result.state.armorType, damageCount := result.state.damageCount }
   let lost := s.inventory.health-inventory.health
-  -- Keep overkill after the existing armor bridge; full P_DamageMobj is separate.
-  let health := Int32.ofNat s.inventory.health - Int32.ofNat (damage - (s.inventory.armor-inventory.armor))
-  let mut s := { s with inventory, attacker := source.bind (fun id => if id == 0 then none else some (id-1)) }
-  if inventory.health == 0 then
+  s := { s with inventory, attacker := source.bind (fun id => if id == 0 then none else some (id-1)) }
+  s := { s with player := { s.player with reactionTime := result.reactionTime s.player.reactionTime } }
+  if result.killed then
     let weapon := (Weapon.drop { state := s.weapon, player := inventory.toPickup, dead := true }).state
     s := { s with weapon }
-    match s.killPlayer health (sourceCredit source) with
+    match s.killPlayer result.state.health (sourceCredit source) with
     | .ok next => s := next
     | .error error => return { s with physicsError := some error }
-  if inventory.health > 0 then s := s.sound "plpain"
+  else if result.pain then
+    s := { s with player := { s.player with animation := (PlayerAnim.enter 156).1 } }
   return s.notice (if inventory.health == 0 then "You died - R to restart" else s!"Hit for {lost}")
 
+/-- P_PlayerInSpecialSector runs after view calculation but before use,
+weapon actions, power counters, and XY/Z movement. A null source/inflictor
+causes no thrust, but still runs normal armor, health and pain/death handling. -/
+def Simulation.hurtFromFloor (s : Simulation) : Simulation :=
+  s.applyFloorEffect (fun current amount => current.hurtPlayer amount none)
+
+/-- The live combat callback uses the shared request exactly once and installs
+its RNG before entering health/armor/pain/death handling. -/
+theorem Simulation.hurtFromFloor_request (s : Simulation) :
+    s.hurtFromFloor =
+      match s.floorDamageRequest with
+      | .error error => { s with physicsError := some error }
+      | .ok (amount,rng) =>
+        let next := { s with rng }
+        if amount == 0 then next else next.hurtPlayer amount none := rfl
+
 private def Simulation.hurtActor (s : Simulation) (index damage : Nat)
-    (source : Option Nat) : Simulation := Id.run do
+    (source : Option Nat) (inflictor : Option PlayerDamage.Inflictor := none) : Simulation := Id.run do
   let mut s := s
   let actor := s.actors[index]!
   let some spec := enemySpec actor.kind | return s
   if actor.health == 0 then return s
+  let result := do
+    let scene ← s.player.syncScene s.map
+    let target := scene.things[actor.thing+1]!
+    let inflictor : Option PlayerDamage.Inflictor := inflictor.orElse fun _ => source.bind fun id =>
+      scene.things[id]?.map fun (t : Collision.SolidThing) => ⟨t.x,t.y,t.z⟩
+    -- Original mass: demon 400; zombieman, shotgunner, imp and barrel 100.
+    let mass : Int32 := if actor.kind == 3002 then 400 else 100
+    let (mx,my,rng) := DamageThrust.apply ⟨target.x,target.y,target.z⟩ (Int32.ofNat actor.health)
+      (Int32.ofNat damage) mass target.momx target.momy inflictor target.moveFlags.noClip
+      (source == some 0 && s.inventory.toPickup.readyWeapon == 7) s.rng
+    let scene := { scene with things := scene.things.set! (actor.thing+1) { target with momx := mx, momy := my } }
+    return { s with rng, player := { s.player with scene := some scene } }
+  match result with
+  | .ok next => s := next
+  | .error error => return { s with physicsError := some error }
   let health := Int32.ofNat actor.health - Int32.ofNat damage
   if health ≤ 0 then
     match s.killActor index health (sourceCredit source) with
@@ -86,8 +140,8 @@ private def Simulation.hurtActor (s : Simulation) (index damage : Nat)
     let imp := { imp with reaction := 0, justHit := imp.justHit || pain }
     let imp := if imp.threshold == 0 && source.isSome && source != some imp.id then
         { imp with target := source, threshold := 100 } else imp
-    let entry := if pain then some ImpData.TROO_PAIN
-      else if imp.frame == ImpData.TROO_STND && imp.target.isSome then some ImpData.TROO_RUN1 else none
+    let entry := if pain then some imp.painFrame
+      else if imp.frame == imp.spawnFrame && imp.target.isSome then some imp.chaseFrame else none
     actor := { actor with imp := some imp }
     s := { s with actors := s.actors.set! index actor }
     if let some frame := entry then
@@ -101,10 +155,11 @@ private def Simulation.hurtActor (s : Simulation) (index damage : Nat)
   else if actor.mode == .idle && actor.kind != 2035 && actor.kind != 3001 then actor := { actor with mode := .chase, age := 0 }
   return { (s.notice s!"Hit - enemy health {health}") with actors := s.actors.set! index actor }
 
-private def Simulation.applyCombatDamage (s : Simulation) (target damage : Nat) (source : Option Nat) : Simulation :=
-  if target == 0 then s.hurtPlayer damage source
+private def Simulation.applyCombatDamage (s : Simulation) (target damage : Nat) (source : Option Nat)
+    (inflictor : Option PlayerDamage.Inflictor := none) : Simulation :=
+  if target == 0 then s.hurtPlayer damage source inflictor
   else match s.actors.findIdx? (·.thing == target-1) with
-    | some index => s.hurtActor index damage source
+    | some index => s.hurtActor index damage source inflictor
     | none => s
 
 private def Simulation.alertImps (s : Simulation) : Simulation :=
@@ -117,8 +172,8 @@ movement still mirrors map positions into this scene at the combat boundary. -/
 private def Simulation.combatScene (s : Simulation) : Except String Collision.Scene :=
   s.player.syncScene s.map
 
-/-- Consume ordered hit requests using the existing damage bridge. Effect actor
-spawning and its RNG and full P_DamageMobj remain pending.
+/-- Consume ordered hit requests: puff/blood spawning precedes damage and its
+pain/death draws. Full P_DamageMobj remains pending.
 E1M1 has no shoot-activated specials; unsupported active cases fail explicitly. -/
 private def Simulation.shoot (s : Simulation) (shooter : Nat) (angle : Angle)
     (slope : Fixed) (damage : Nat) (distance : Fixed := Fixed.ofInt 2048) : Simulation := Id.run do
@@ -136,6 +191,16 @@ private def Simulation.shoot (s : Simulation) (shooter : Nat) (angle : Angle)
   for event in result.events do
     s := { s with shotEvents := s.shotEvents.push (shooter,event) }
     match event with
+    | .puff x y z | .blood x y z _ =>
+      let .ok sector := s.map.sectorAt x y | return { s with physicsError := some "impact: invalid spawn sector" }
+      let sec := s.map.sectors[sector]!
+      let (blood,amount) := match event with | .blood _ _ _ n => (true,n) | _ => (false,0)
+      let (impact,rng) := Impact.spawn blood amount (distance == Fixed.ofInt 64)
+        x y z (Fixed.ofInt sec.floor) (Fixed.ofInt sec.ceiling) s.rng
+      s := s.dosSpawn s!"impact:{s.nextDynamicSerial}" 154
+      s := { s with
+        rng, impacts := s.impacts.push { impact with thinkerSerial := s.nextDynamicSerial }
+        nextDynamicSerial := s.nextDynamicSerial+1 }
     | .special id =>
       let special := s.map.lines[id]!.special
       if special == 46 || (shooter == 0 && (special == 24 || special == 47)) then
@@ -144,13 +209,12 @@ private def Simulation.shoot (s : Simulation) (shooter : Nat) (angle : Angle)
       if target == 0 then s := s.hurtPlayer amount.toInt.toNat (some shooter)
       else if let some index := s.actors.findIdx? (fun (actor : Actor) => actor.thing == target-1) then
         s := s.hurtActor index amount.toInt.toNat (some shooter)
-    | _ => pure ()
   return s
 
 /-- A_FirePistol/A_FireShotgun share one autoaim slope. Each pellet consumes
 its damage/spread draws immediately before tracing and applying its damage, so
 pain/death RNG from earlier pellets interleaves with later pellet draws. -/
-private def Simulation.fireGun (s : Simulation) (shotgun accurate : Bool) : Simulation := Id.run do
+def Simulation.fireGun (s : Simulation) (shotgun accurate : Bool) : Simulation := Id.run do
   let mut s := (s.sound (if shotgun then "shotgn" else "pistol")).notice (if shotgun then "Shotgun fired" else "Pistol fired")
   let aiming := do
     let scene ← s.combatScene
@@ -194,28 +258,42 @@ private def Simulation.punch (s : Simulation) : Simulation := Id.run do
         s := { s with player := { s.player with body := { s.player.body with angle := facing }, camera := { s.player.camera with angle := facing } } }
   return s
 
-private def Simulation.weaponTick (s : Simulation) (keys : UInt32) : Simulation := Id.run do
-  let choice := if keyDown keys 16384 then some 0 else if keyDown keys 32768 then some 1
-    else if keyDown keys 65536 then some 2 else none
-  let context : Weapon.Context := { state := s.weapon, player := s.inventory.toPickup, attack := keyDown keys 8192, dead := s.inventory.health == 0, bob := s.player.view.bob, time := Int32.ofNat (s.ticks-1) }
+/-- The actual runtime inputs to the weapon updater, shared with correspondence
+proofs so attack state, player inventory and tic timing cannot drift. -/
+def Simulation.weaponContext (s : Simulation) (keys : UInt32) : Weapon.Context :=
+  { state := s.weapon, player := s.inventory.toPickup, body := s.player.animation,
+    attack := keyDown keys 8192, dead := s.inventory.health == 0,
+    bob := s.player.view.bob, time := Int32.ofNat (s.ticks-1) }
+
+/-- Execute one weapon event at its actual emission site, including the fire
+sample before hitscan/audio. Exposed for the production correspondence boundary. -/
+def Simulation.weaponEvent (s : Simulation) (before : Vector Int32 4)
+    (after : Pickup.State) (event : Weapon.Event) : Simulation := Id.run do
+  let mut s := s
+  let gun := match event with | .pistol _ => some Fire.Gun.pistol | .shotgun => some .shotgun | _ => none
+  if let some gun := gun then
+    s := { s with lastFire := some { gun, tic := s.ticks, ammoBefore := before[gun.ammoIndex], ammoAfter := after.ammo[gun.ammoIndex], pelletsExpected := gun.pellets } }
+  s := match event with
+  | .pistol accurate => s.fireGun false accurate
+  | .shotgun => s.fireGun true false
+  | .punch => s.punch
+  | .noise => s.alertImps
+  return s
+
+/-- Apply the weapon update and execute its ordered gameplay events. -/
+def Simulation.weaponTick (s : Simulation) (keys : UInt32) : Simulation := Id.run do
+  let context := s.weaponContext keys
   let before := context.player.ammo
-  let context := Weapon.tick (context.select choice)
+  let context := Weapon.tick context
   let mut age := 100
   let first := Weapon.attackState context.player.readyWeapon.val
   if context.state.weapon.frame ≥ first && context.state.weapon.frame < (if context.player.readyWeapon == 0 then 10 else if context.player.readyWeapon == 1 then 17 else 30) then
     age := 0
     for f in [first:context.state.weapon.frame] do age := age + WeaponData.frames[f]!.tics.toInt.toNat
     age := age + (WeaponData.frames[context.state.weapon.frame]!.tics-context.state.weapon.tics).toInt.toNat
-  let mut s := { s with weapon := context.state, inventory := Inventory.fromPickup context.player, weaponAge := age, attackDown := context.state.attackDown, refire := context.state.refire != 0 }
+  let mut s := { s with weapon := context.state, player := { s.player with animation := context.body }, inventory := Inventory.fromPickup context.player, weaponAge := age, attackDown := context.state.attackDown, refire := context.state.refire != 0 }
   for event in context.events do
-    let gun := match event with | .pistol _ => some Fire.Gun.pistol | .shotgun => some .shotgun | _ => none
-    if let some gun := gun then
-      s := { s with lastFire := some { gun, tic := s.ticks, ammoBefore := before[gun.ammoIndex], ammoAfter := context.player.ammo[gun.ammoIndex], pelletsExpected := gun.pellets } }
-    s := match event with
-    | .pistol accurate => s.fireGun false accurate
-    | .shotgun => s.fireGun true false
-    | .punch => s.punch
-    | .noise => s.alertImps
+    s := s.weaponEvent before context.player event
     if s.physicsError.isSome then return s
   return s
 
@@ -323,28 +401,53 @@ private def Simulation.enemyAttack (s : Simulation) (a : Actor) : Simulation := 
     if s.physicsError.isSome then return s
   return s
 
+/-- A_PosAttack after the shared brain has run A_FaceTarget. No extra sight or
+range gate: the original attack uses the target retained by the state machine. -/
+private def Simulation.zombieAttack (s : Simulation) (actor : Actor) : Simulation := Id.run do
+  let some brain := actor.imp | return { s with physicsError := some "zombie: missing brain" }
+  let aiming := do
+    let scene ← s.combatScene
+    scene.aimLineAttack (actor.thing+1) brain.angle (Fixed.ofInt 2048)
+  let .ok aiming := aiming | return { s with physicsError := (match aiming with | .error error => some error | .ok _ => none) }
+  let s := s.sound "pistol" (.actor (actor.thing+1))
+  let (spread,rng) := s.rng.subPlay
+  let (damage,rng) := rng.nextPlay
+  let angle : Angle := ⟨brain.angle.raw + (Int32.ofInt spread <<< 20).toUInt32⟩
+  return ({ s with rng } : Simulation).shoot (actor.thing+1) angle aiming.slope (3*(damage%5+1))
+
 /-- A_Explode uses the barrel's existing target, not necessarily the lethal
 attacker. Sight runs from each victim toward the already-quarter-height barrel. -/
 private def Simulation.explodeBarrel (s : Simulation) (actor : Actor) : Simulation := Id.run do
   let result := do
     let scene ← s.combatScene
     let spot := scene.things[actor.thing+1]!
-    scene.radiusAttack spot 128
+    let hits ← scene.radiusAttack spot 128
       (fun id => if id == 0 then 0 else s.map.things[id-1]!.kind) (Sight.check s.map)
-  let .ok hits := result | return { s with physicsError := (match result with | .error e => some e | _ => none) }
+    return (hits,spot)
+  let .ok (hits,spot) := result | return { s with physicsError := (match result with | .error e => some e | _ => none) }
   let mut s := s
   for (target,amount) in hits do
     s := { s with blastEvents := s.blastEvents.push (actor.thing+1,target,amount) }
-    if target == 0 then s := s.hurtPlayer amount.toInt.toNat actor.damageTarget
+    if target == 0 then
+      s := s.hurtPlayer amount.toInt.toNat actor.damageTarget (some ⟨spot.x,spot.y,spot.z⟩)
     else if let some index := s.actors.findIdx? (·.thing == target-1) then
-      s := s.hurtActor index amount.toInt.toNat actor.damageTarget
+      s := s.hurtActor index amount.toInt.toNat actor.damageTarget (some ⟨spot.x,spot.y,spot.z⟩)
     if s.physicsError.isSome then return s
   return s
 
 private def Simulation.actorTick (s : Simulation) : Simulation := Id.run do
   let mut s := s
+  let mut cursor := 0
   for index in [:s.actors.size] do
+    for thing in [cursor:s.actors[index]!.thing+1] do
+      if s.collected.contains thing || s.crushedDrops.contains thing ||
+          s.actors.any (fun a => a.thing == thing && a.death.any (·.removed)) then
+        s := s.dosRemove s!"thing:{thing}"
+    cursor := s.actors[index]!.thing+1
     if s.physicsError.isSome then return s
+    match s.moveActorMomentum index with
+    | .ok next => s := next
+    | .error error => return { s with physicsError := some error }
     if s.actors[index]!.death.isSome then
       let eventStart := s.deathEvents.size
       match s.tickCorpse index with
@@ -356,7 +459,7 @@ private def Simulation.actorTick (s : Simulation) : Simulation := Id.run do
     let mut a := s.actors[index]!
     let some spec := enemySpec a.kind | continue
     a := { a with age := a.age+1, cooldown := a.cooldown-1 }
-    if a.kind == 3001 then
+    if a.imp.isSome then
       let first := s.impEvents.size
       match s.impRun index with
       | .error error => return { s with physicsError := some error }
@@ -365,9 +468,10 @@ private def Simulation.actorTick (s : Simulation) : Simulation := Id.run do
         match event with
         | .melee target amount => s := s.applyCombatDamage target amount (some (a.thing+1))
         | .missile target =>
-          match s.spawnImpShot (a.thing+1) target Simulation.applyCombatDamage with
+          match s.spawnImpShot (a.thing+1) target (fun s target damage source inflictor => s.applyCombatDamage target damage source inflictor) with
           | .ok next => s := next
           | .error error => return { s with physicsError := some error }
+        | .hitscan _ => s := s.zombieAttack s.actors[index]!
         | .sound _ => pure ()
       continue
     if a.kind == 2035 then
@@ -403,43 +507,83 @@ private def Simulation.actorTick (s : Simulation) : Simulation := Id.run do
       let thing := { s.map.things[a.thing]! with angle }
       s := { s with map := { s.map with things := s.map.things.set! a.thing thing } }
     s := { s with actors := s.actors.set! index a }
+  for thing in [cursor:s.map.things.size] do
+    if s.collected.contains thing || s.crushedDrops.contains thing then
+      s := s.dosRemove s!"thing:{thing}"
+  return s
+
+/-- Dead PlayerThink still lowers psprites, computes the fixed-point view,
+turns toward the live attacker position, and then lets the player mobj move. -/
+private def Simulation.deadPlayerTick (s : Simulation) (keys : UInt32)
+    (command : Option Ticcmd) : Except String Simulation := do
+  let mut s := s.weaponTick keys
+  if let some error := s.physicsError then throw error
+  let scene ← s.player.syncScene s.map
+  let attacker := s.attacker.bind fun index => scene.things[index+1]?.map fun t =>
+    (Angle.fromVector (t.x-s.player.body.x) (t.y-s.player.body.y)).raw
+  let (angle,damage) := PlayerDeath.look s.player.body.angle.raw attacker s.inventory.pickupState.damageCount
+  let body := { s.player.body with angle := ⟨angle⟩ }
+  let view := PlayerDeath.view s.player.view body (Int32.ofNat (s.ticks-1))
+  let inventory := Inventory.fromPickup { s.inventory.toPickup with damageCount := damage }
+  let (cmd,keyboard) := match command with
+    | some cmd => (cmd,s.player.keyboard)
+    | none => s.player.keyboard.build (walkingKeys keys)
+  let player := { s.player with body, view, inventory, keyboard }
+  let lighting : SectorLights.World := {
+    map := s.map, thinkers := s.lights, rng := s.rng,
+    busy := s.doors.map (·.sector) ++ s.movers.map (·.sector),
+    movers := s.movers, moverSounds := s.moverSounds }
+  let oldLandings := player.landingEvents
+  let player ← player.moveTick s.map cmd s.dropped (some lighting)
+  s := { s with player, inventory := player.inventory }
+  if let some world := player.scene.bind (·.lighting) then
+    s := { s with
+      map := world.map, lights := world.thinkers, rng := world.rng,
+      movers := world.movers, moverSounds := world.moverSounds }
+  if player.landingEvents > oldLandings then s := s.sound "oof"
   return s
 
 /-- Shared combat/interaction tick. Free flight pauses combat for inspection. -/
-def Simulation.tick (s : Simulation) (keys : UInt32) (walking : Bool := true) : Simulation := Id.run do
+def Simulation.tick (s : Simulation) (keys : UInt32) (walking : Bool := true)
+    (command : Option Ticcmd := none) : Simulation := Id.run do
   if keyDown keys 1024 && !s.restartHeld then return { s.restart with restartHeld := true }
   -- G_ExitLevel queues completion; the activation tic finishes normally. Until
   -- G_DoCompleted/WI_Ticker are ported, hold the last level state at that boundary.
   if s.exitRequested then return { s with restartHeld := keyDown keys 1024 }
   let alive := s.inventory.health > 0
-  let mut s := { s.interactionTick keys (walking && alive) with blastEvents := #[], impEvents := #[], projectileEvents := #[] }
+  let s := { s with blastEvents := #[], impEvents := #[], projectileEvents := #[] }
+  let mut s := s.interactionTick keys (walking && alive) command
+    (fun current => if current.combatEnabled then current.weaponTick keys else current)
+    (fun current => if current.combatEnabled then current.hurtFromFloor else current)
   if s.physicsError.isSome then return s
   s := { s with restartHeld := keyDown keys 1024 }
   if s.combatEnabled && walking then
     if !alive then
-      let p := s.inventory.toPickup
-      s := { s with inventory := Inventory.fromPickup { p with damageCount := max (0 : Int32) (p.damageCount-1) } }
-    s := s.weaponTick keys
-    if s.physicsError.isSome then return s
+      match s.deadPlayerTick keys command with
+      | .ok next => s := next
+      | .error error => return { s with physicsError := some error }
     -- The player's mobj precedes the prototype enemy loop. A death caused by
     -- an enemy this tic begins its countdown on the following tic.
+    if s.inventory.health > 0 then
+      let (animation,painSound) := PlayerAnim.tick s.player.animation
+      s := { s with player := { s.player with animation } }
+      if painSound then s := s.sound "plpain"
     match s.tickPlayerCorpse with
     | .ok next => s := next
     | .error error => return { s with physicsError := some error }
     s := s.actorTick
     if s.physicsError.isSome then return s
-    match s.tickProjectiles Simulation.applyCombatDamage with
+  -- Map-spawn lighting thinkers follow map actors but precede missiles appended
+  -- during play. Their P_Random draws must precede missile explosion duration.
+  let (map, lights, rng) := SectorLights.tickMap s.map s.lights s.rng
+  s := { s with map, lights, rng }
+  if s.combatEnabled && walking then
+    match s.tickDoorsAndProjectiles (fun s target damage source inflictor => s.applyCombatDamage target damage source inflictor) with
     | .ok next => s := next
     | .error error => return { s with physicsError := some error }
     if s.physicsError.isSome then return s
-    if s.inventory.health == 0 then
-      let height := max (s.player.feet+6) (s.player.camera.z.toFloat-1)
-      let camera := { s.player.camera with z := Fixed.ofFloat height }
-      s := { s with player := { s.player with camera }, weaponAge := 100 }
-  -- Map lighting thinkers are spawned after map things and retain sector order.
-  -- Existing actor/door thinkers remain prototypes, so this is not full-tic parity.
-  let (map, lights, rng) := SectorLights.tickMap s.map s.lights s.rng
-  s := { s with map, lights, rng }
+  if !s.combatEnabled || !walking then s := s.moveDoors
+  if s.physicsError.isSome then return s
   s := s.moveFloors
   if s.physicsError.isSome then return s
   for (sector,sound) in s.moverSounds do
@@ -460,5 +604,21 @@ def Simulation.tick (s : Simulation) (keys : UInt32) (walking : Bool := true) : 
       attack := s.attackDown, angle := s.player.camera.angle.raw, attackerAngle, random }
     s := { s with statusFace := face, rng }
   return s
+
+/-- Feed a decoded demo command directly to the same engine as the viewer.
+No conversion of movement or turning into keyboard presses. This initial demo
+profile supports ordinary buttons and fist/pistol/shotgun selection only. -/
+def Simulation.tickCommand (s : Simulation) (cmd : Ticcmd) : Except String Simulation := do
+  if cmd.buttons &&& 0xc0 != 0 then throw "demo: special/reserved buttons unsupported"
+  let change := cmd.buttons &&& 4 != 0
+  let weapon := (cmd.buttons >>> 3).toNat &&& 7
+  if change && weapon > 2 then throw "demo: weapon selection outside fist/pistol/shotgun profile"
+  let keys : UInt32 := (if cmd.buttons &&& 1 != 0 then 8192 else 0) |||
+    (if cmd.buttons &&& 2 != 0 then 4096 else 0) |||
+    (if change then #[16384,32768,65536][weapon]! else 0)
+  if s.exitRequested then throw "demo: level completion/intermission is not implemented"
+  let next := s.tick keys true (some cmd)
+  if let some error := next.physicsError then throw error
+  return next
 
 end Doom

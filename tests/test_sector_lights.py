@@ -57,10 +57,10 @@ class SectorLightTests(unittest.TestCase):
             result=self.state(scene(8),f'{tic}:0')
             self.assertEqual(result['sectorLights'],[light,64])
             self.assertEqual(result['lightThinkers'][0]['direction'],direction)
-            self.assertEqual(result['rng'],0)
+            self.assertEqual(result['rng'],1) # Player P_SpawnMobj lastlook.
 
     def test_flash_countdown_uses_bitmask_not_modulo_and_only_draws_when_due(self):
-        for tic,light,count,rng in [(0,128,1,1),(1,64,6,2),(6,64,1,2),(7,128,65,3),(71,128,1,3)]:
+        for tic,light,count,rng in [(0,128,65,2),(64,128,1,2),(65,64,5,3),(69,64,1,3),(70,128,65,4)]:
             result=self.state(scene(1),f'{tic}:0')
             self.assertEqual(result['sectorLights'][0],light)
             self.assertEqual(result['lightThinkers'][0]['count'],count)
@@ -68,14 +68,15 @@ class SectorLightTests(unittest.TestCase):
 
     def test_strobes_keep_original_periods_sync_and_damage_marker(self):
         for special,dark,sync in [(2,15,False),(3,35,False),(4,15,False),(12,35,True),(13,15,True)]:
-            for tic,light in [(0,128),(1,64),(dark,64),(dark+1,128),(dark+5,128),(dark+6,64)]:
+            first=1 if sync else 6 # (P_Random() & 7) + 1 after the player spawn.
+            for tic,light in [(0,128),(first,64),(first+dark-1,64),(first+dark,128),(first+dark+4,128),(first+dark+5,64)]:
                 result=self.state(scene(special),f'{tic}:0')
                 self.assertEqual(result['sectorLights'][0],light)
                 self.assertEqual(result['sectorSpecials'][0],4 if special==4 else 0)
-                self.assertEqual(result['rng'],0 if sync else 1)
+                self.assertEqual(result['rng'],1 if sync else 2)
 
     def test_fire_uses_current_level_and_retains_minimum_plus_sixteen_quirk(self):
-        for tic,light,rng in [(3,128,0),(4,128,1),(7,128,1),(8,112,2),(12,128,3),(16,96,4)]:
+        for tic,light,rng in [(3,128,1),(4,112,2),(7,112,2),(8,128,3),(12,96,4),(16,112,5)]:
             result=self.state(scene(17),f'{tic}:0')
             self.assertEqual(result['sectorLights'][0],light)
             self.assertEqual(result['rng'],rng)
@@ -91,7 +92,7 @@ class SectorLightTests(unittest.TestCase):
         self.assertEqual(self.state(geom,'1:0')['sectorLights'],[64,64])
 
     def test_renderer_uses_changed_sector_table_but_does_not_advance_thinker(self):
-        art=artwork([[100]*8 for _ in range(8)],('NEARWALL','FARWALL','UPPER','LOWER'),('FLOOR_A','FLOOR_B','CEILING'))
+        art=artwork([[100]*8 for _ in range(128)],('NEARWALL','FARWALL','UPPER','LOWER'),('FLOOR_A','FLOOR_B','CEILING'))
         # Encode selected colormap row directly so test observes world lighting.
         art=replace(art,'COLORMAP',b''.join(bytes([row])*256 for row in range(34)))
         geom=two_rooms()
@@ -105,13 +106,13 @@ class SectorLightTests(unittest.TestCase):
         self.assertEqual(dark,self.frame(animated,'1:0'))
         self.assertEqual(bright,self.frame(animated,'0:0'))
 
-    def test_lighting_and_pistol_share_gameplay_rng_without_touching_misc(self):
+    def test_lighting_and_pistol_share_gameplay_rng_while_pitch_uses_misc(self):
         geom=sectors(arena(),[(128,1)])
-        result=self.state(geom,'5:8192',combat=True)
+        result=self.state(geom,'19:8192',combat=True)
         self.assertEqual(result['shots'],1)
-        self.assertEqual(result['rng'],3) # Flash spawn, flash tick 1, pistol tick 5.
-        self.assertEqual(result['miscRng'],5)
-        passive=self.state(geom,'5:0')
+        self.assertEqual(result['rng'],7) # Player, flash, pistol damage, four puff draws.
+        self.assertEqual(result['miscRng'],20)
+        passive=self.state(geom,'19:0')
         self.assertEqual(passive['rng'],2)
         self.assertEqual(passive['miscRng'],0)
 
@@ -133,7 +134,7 @@ class SectorLightTests(unittest.TestCase):
             self.assertEqual(result['sectorSpecials'],[0 if special==9 else special])
             self.assertEqual(result['secrets'],1 if special==9 else 0)
             self.assertEqual(result['lightThinkers'],[])
-            self.assertEqual(result['rng'],0)
+            self.assertEqual(result['rng'],1) # Player P_SpawnMobj lastlook.
 
     def test_walkover_light_actions_both_directions_and_one_shot_flags(self):
         for special,light,retained in [(12,64,0),(13,255,0),(35,35,0),(104,64,0),
@@ -143,7 +144,7 @@ class SectorLightTests(unittest.TestCase):
                     result=self.state(crossing_scene(special,reverse=reverse),'20:2')
                     self.assertEqual(result['sectorLights'],[light,64])
                     self.assertEqual(result['specials'][2],retained)
-                    self.assertEqual(result['rng'],0)
+                    self.assertEqual(result['rng'],1) # Player P_SpawnMobj lastlook.
 
     def test_touch_failed_move_and_use_do_not_activate_walkover_lights(self):
         geom=crossing_scene(35)
@@ -164,20 +165,20 @@ class SectorLightTests(unittest.TestCase):
         self.assertEqual(before['lightThinkers'],[])
         after=self.state(geom,'16:2')
         self.assertGreater(after['x'],64)
-        self.assertEqual(after['rng'],1)
-        self.assertEqual(after['sectorLights'],[64,64])
-        self.assertEqual(after['lightThinkers'][0]['count'],35)
+        self.assertEqual(after['rng'],2)
+        self.assertEqual(after['sectorLights'],[128,64])
+        self.assertEqual(after['lightThinkers'][0]['count'],5)
         self.assertEqual(after['specials'][2],0)
         again=self.state(geom,'20:2,30:4')
         self.assertLess(again['x'],64)
         self.assertEqual(len(again['lightThinkers']),1)
-        self.assertEqual(again['rng'],1)
+        self.assertEqual(again['rng'],2)
 
     def test_strobe_does_not_replace_existing_light_or_own_specialdata(self):
         result=self.state(crossing_scene(17,sector_special=4),'16:2')
         self.assertEqual(len(result['lightThinkers']),2)
         self.assertEqual([t['dark'] for t in result['lightThinkers']],[15,35])
-        self.assertEqual(result['rng'],2)
+        self.assertEqual(result['rng'],3)
         self.assertEqual(result['sectorSpecials'][0],0)
 
     def test_repeatable_light_reapplies_after_existing_glow_overwrites_it(self):

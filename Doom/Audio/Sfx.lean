@@ -76,13 +76,14 @@ def State.stop (s : State) (origin : Option Origin) : State :=
   | none => s
   | some i => { s with channels := s.channels.set! i none }
 
-/-- S_StopSound then first-free/origin channel, otherwise first priority >= new.
-Pitch consumes only M_Random, and only for audible starts. -/
-def State.start (s : State) (listener : Listener) (e : Event) (rng : DoomRandom) : Except String (State × DoomRandom) := do
-  let some info :=  Tables.sfx.find? (·.1 == e.name) | throw s!"sound: unknown effect {e.name}"
+/-- Logical sound setup precedes the output backend, including with -nosound.
+Audibility gates the pitch RNG draw, but allocating an output channel does not. -/
+def State.prepare (s : State) (listener : Listener) (e : Event) (rng : DoomRandom)
+    : Except String (Option (Params × Nat × DoomRandom)) := do
+  if !(Tables.sfx.any (·.1 == e.name)) then throw s!"sound: unknown effect {e.name}"
   let mut params : Params := ⟨s.volume,128⟩
   if e.origin.isSome && e.origin != some (.actor 0) then
-    let some p ← adjust listener e.position s.volume s.map8 | return (s,rng)
+    let some p ← adjust listener e.position s.volume s.map8 | return none
     params := p
     if e.position.x == listener.x && e.position.y == listener.y then params := { params with separation := 128 }
   let mut pitch := 128
@@ -91,6 +92,11 @@ def State.start (s : State) (listener : Listener) (e : Event) (rng : DoomRandom)
     let (random,next) := rng.nextMisc
     rng := next
     pitch := if #["sawup","sawidl","sawful","sawhit"].contains e.name then 136-(random &&& 15) else 144-(random &&& 31)
+  return some (params,pitch,rng)
+
+def State.start (s : State) (listener : Listener) (e : Event) (rng : DoomRandom) : Except String (State × DoomRandom) := do
+  let some (params,pitch,rng) ← s.prepare listener e rng | return (s,rng)
+  let some info := Tables.sfx.find? (·.1 == e.name) | throw s!"sound: unknown effect {e.name}"
   let mut channels := s.channels
   if let some i := channels.findIdx? (fun c => c.any (·.origin == e.origin)) then channels := channels.set! i none
   let index := channels.findIdx? fun c => c.isNone || (e.origin.isSome && c.any (·.origin == e.origin))

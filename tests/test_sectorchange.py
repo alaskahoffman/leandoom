@@ -21,8 +21,8 @@ class SectorChangeTests(unittest.TestCase):
     def test_scan_includes_player_in_expanded_block_even_away_from_door(self):
         # Player is 48 units from the portal, outside the old radius test.
         geom=door_room(start=(16,0,0),extras=[(16,0,0,2007,7)])
-        self.assertEqual(self.state(geom,'1:4096')['collected'],[])
-        result=self.state(geom,'1:4096,1:0')
+        self.assertEqual(self.state(geom,'0:0')['collected'],[])
+        result=self.state(geom,'1:4096')
         self.assertEqual(result['x'],16)
         self.assertEqual(result['collected'],[1])
         self.assertEqual(result['ammo'][0],60)
@@ -46,28 +46,33 @@ class SectorChangeTests(unittest.TestCase):
     def death_room(self):
         # Start slightly below the target so the existing activation adapter
         # creates a normal door thinker; original activation is a later port.
-        return sectors(door_room(open_door=True,extras=[(110,0,180,3004,7)]),second=(-16,122))
+        # Face away so the target stays inside the door during weapon raising.
+        return sectors(door_room(open_door=True,extras=[(110,0,0,3004,7)]),second=(-16,122))
 
     def test_dead_enemy_gibs_and_drop_is_removed_without_a_pickup(self):
         geom=self.death_room()
-        before=self.state(geom,'20:8192',True)
+        before=self.state(geom,'65:8192',True)
         self.assertEqual(before['kills'],1)
         self.assertEqual(before['gibbed'],[])
         self.assertEqual(before['dropped'],[2])
-        script='20:8192,1:4096,300:0'
+        script='65:8192,1:4096,300:0'
         result=self.state(geom,script,True)
         self.assertEqual(result['ceilings'][1],-16)
         self.assertEqual(result['doors'],[])
         self.assertEqual(result['gibbed'],[1])
+        corpse=result['actors'][0]['death']
+        self.assertEqual((corpse['state'],corpse['tics'],corpse['height'],corpse['solid']),
+                         ('S_GIBS',-1,0,False))
+        self.assertEqual(corpse['health'],before['actors'][0]['death']['health'])
         self.assertEqual(result['crushedDrops'],[2])
         self.assertEqual(result['collected'],[])
         self.assertEqual(result['ammo'],before['ammo'])
-        self.assertEqual(result,self.state(geom,'20:8192,1:4096,150:0,150:0',True))
+        self.assertEqual(result,self.state(geom,'65:8192,1:4096,150:0,150:0',True))
         self.assertEqual(self.state(geom,'0:0',True),self.state(geom,script+',1:1024',True))
 
     def test_gib_sprite_is_loaded_and_drawn_after_reopening(self):
         geom=self.death_room()
-        script='20:8192,1:4096,300:0,1:4096,80:0'
+        script='65:8192,1:4096,300:0,1:4096,80:0'
         state=self.state(geom,script,True)
         self.assertEqual(state['gibbed'],[1])
         self.assertEqual(state['crushedDrops'],[2])

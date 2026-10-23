@@ -1,0 +1,23 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "cache": {
+      "code_offset": "0x2e368",
+      "file_offset": "0x7037c",
+      "hex": "0fbf431683f8ff74126bc0128b1518c102008b44020e89432eeb07c7432e000000000fbf431883f8ff74126bc0128b1518c102008b44020e894332eb07c7433200000000",
+      "relocations": [
+        {
+          "offset": 14,
+          "object": 3,
+          "target": "0x2c118"
+        },
+        {
+          "offset": 48,
+          "object": 3,
+          "target": "0x2c118"
+        }
+      ]
+    }
+  },
+  "scope": "P_LoadLineDefs cached sector pointers, after side indices have been copied. Flat data-relative x86 segment, including signed indices, absent sides and ordered reads/writes. Excludes earlier geometry/index copies, allocation, loader loop and startup reachability."
+}

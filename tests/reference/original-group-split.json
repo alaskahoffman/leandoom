@@ -1,0 +1,12 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "select_split": {
+      "code_offset": "0x396f8",
+      "file_offset": "0x7b70c",
+      "hex": "837b040075bf8b0339c17fb989c229ca83fa407e248d040bc7400400000000c740080000000089108958148b5310895010894214894310890b",
+      "relocations": []
+    }
+  },
+  "scope": "Candidate acceptance and exact signed split decision, block splitting, and joined allocator return/grouping entry. Search loop, purge/coalescing, prologue and initial heap construction remain open."
+}

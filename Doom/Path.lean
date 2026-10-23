@@ -59,16 +59,22 @@ structure PathResult where
   visited : Array Intercept := #[]
   deriving Repr
 
-private def lineIntercept (trace : Divline) (line : Line) : Except String (Option Fixed) := do
-  let (s1, s2) := if trace.dx.raw > 1048576 || trace.dy.raw > 1048576 ||
-      trace.dx.raw < -1048576 || trace.dy.raw < -1048576 then
+/-- Original strict component threshold for choosing the intersection side test. -/
+def Divline.usesDivlineTest (trace : Divline) : Bool :=
+  trace.dx.raw > 1048576 || trace.dy.raw > 1048576 ||
+    trace.dx.raw < -1048576 || trace.dy.raw < -1048576
+
+/-- Line-intercept calculation, exposed for correspondence proofs. -/
+def lineIntercept (trace : Divline) (line : Line) : Except String (Option Fixed) := do
+  let (s1, s2) := if trace.usesDivlineTest then
     (trace.pointSide line.x line.y, trace.pointSide (line.x + line.dx) (line.y + line.dy))
   else (line.pointSide trace.x trace.y, line.pointSide (trace.x + trace.dx) (trace.y + trace.dy))
   if s1 == s2 then return none
   let frac ← interceptVector trace ⟨line.x, line.y, line.dx, line.dy⟩
   return if frac.raw < 0 then none else some frac
 
-private def thingIntercept (trace : Divline) (thing : SolidThing) : Except String (Option Fixed) := do
+/-- Object-intercept calculation, exposed for correspondence proofs. -/
+def thingIntercept (trace : Divline) (thing : SolidThing) : Except String (Option Fixed) := do
   let positive := (trace.dx.raw ^^^ trace.dy.raw) > 0
   let x1 := thing.x - thing.radius
   let x2 := thing.x + thing.radius
@@ -78,9 +84,63 @@ private def thingIntercept (trace : Divline) (thing : SolidThing) : Except Strin
   let frac ← interceptVector trace ⟨x1, y1, x2-x1, y2-y1⟩
   return if frac.raw < 0 then none else some frac
 
-private def appendIntercept (r : PathResult) (hit : Intercept) : Except String PathResult :=
+/-- Bounded insertion, exposed for the original-memory correspondence proof. -/
+def appendIntercept (r : PathResult) (hit : Intercept) : Except String PathResult :=
   if r.collected.size ≥ 128 then .error "path: intercept overflow profile is unverified"
   else .ok { r with collected := r.collected.push hit }
+
+/-- The original boundary adjustment and coordinates before block stepping. -/
+structure PathStart where
+  trace : Divline
+  x1 : Fixed
+  y1 : Fixed
+  x2 : Fixed
+  y2 : Fixed
+
+def pathStart (ox oy startX startY endX endY : Fixed) : PathStart :=
+  let x := if (startX-ox).raw &&& 8388607 == 0 then startX+Fixed.ofInt 1 else startX
+  let y := if (startY-oy).raw &&& 8388607 == 0 then startY+Fixed.ofInt 1 else startY
+  ⟨⟨x,y,endX-x,endY-y⟩,x-ox,y-oy,endX-ox,endY-oy⟩
+
+def PathStart.startBlockX (p : PathStart) : Int32 := p.x1.raw >>> 23
+def PathStart.startBlockY (p : PathStart) : Int32 := p.y1.raw >>> 23
+def PathStart.endBlockX (p : PathStart) : Int32 := p.x2.raw >>> 23
+def PathStart.endBlockY (p : PathStart) : Int32 := p.y2.raw >>> 23
+def PathStart.xFraction (p : PathStart) : Fixed := ⟨(p.x1.raw >>> 7) &&& 65535⟩
+
+/-- X-axis direction, fractional distance and Y stride used by the live traversal. -/
+def PathStart.xStep (initial : PathStart) : Except String (Int32 × Fixed × Fixed) :=
+  if initial.endBlockX == initial.startBlockX then
+      pure ((0 : Int32), Fixed.ofInt 1, Fixed.ofInt 256)
+    else do
+      let fraction := initial.xFraction
+      let portion := if initial.endBlockX > initial.startBlockX then Fixed.ofInt 1 - fraction else fraction
+      let step ← checkedPathDiv (initial.y2-initial.y1) (← checkedPathAbs (initial.x2-initial.x1))
+      pure (if initial.endBlockX > initial.startBlockX then 1 else -1, portion, step)
+
+def PathStart.yFraction (p : PathStart) : Fixed := ⟨(p.y1.raw >>> 7) &&& 65535⟩
+
+/-- Y-axis direction, fractional distance and X stride used by the live traversal. -/
+def PathStart.yStep (initial : PathStart) : Except String (Int32 × Fixed × Fixed) :=
+  if initial.endBlockY == initial.startBlockY then
+    pure ((0 : Int32), Fixed.ofInt 1, Fixed.ofInt 256)
+  else do
+    let fraction := initial.yFraction
+    let portion := if initial.endBlockY > initial.startBlockY then Fixed.ofInt 1 - fraction else fraction
+    let step ← checkedPathDiv (initial.x2-initial.x1) (← checkedPathAbs (initial.y2-initial.y1))
+    pure (if initial.endBlockY > initial.startBlockY then 1 else -1, portion, step)
+
+/-- First grid intercept, retaining the original signed shift and fixed multiply. -/
+def pathFirstIntercept (start portion stride : Fixed) : Fixed :=
+  (⟨start.raw >>> 7⟩ : Fixed) + portion * stride
+
+/-- Signed cell bounds used before either block iterator reads the grid. -/
+def pathCellInside (x y : Int32) (width height : Nat) : Bool :=
+  x.toInt ≥ 0 && y.toInt ≥ 0 && x.toInt < width && y.toInt < height
+
+/-- Row-major cell index used after the signed bounds check. -/
+def pathCellIndex (x y : Int32) (width : Nat) : Nat :=
+  y.toInt.toNat * width + x.toInt.toNat
 
 /-- P_PathTraverse: original one-unit boundary nudge, line-before-thing cell
 visits, 64-iteration limit (including stalled cells), and first-inserted tie order.
@@ -95,36 +155,21 @@ def Scene.pathTraverse (scene : Scene) (startX startY endX endY : Fixed)
     throw "path: unsupported BLOCKMAP profile"
   let ox := Fixed.ofInt grid.origin.x
   let oy := Fixed.ofInt grid.origin.y
-  let x1 := if (startX - ox).raw &&& 8388607 == 0 then startX + Fixed.ofInt 1 else startX
-  let y1 := if (startY - oy).raw &&& 8388607 == 0 then startY + Fixed.ofInt 1 else startY
-  let trace : Divline := ⟨x1, y1, endX-x1, endY-y1⟩
+  let initial := pathStart ox oy startX startY endX endY
+  let trace := initial.trace
   let mut result : PathResult := { trace }
-  let x1 := x1 - ox; let y1 := y1 - oy
-  let x2 := endX - ox; let y2 := endY - oy
-  let xt1 := x1.raw >>> 23; let yt1 := y1.raw >>> 23
-  let xt2 := x2.raw >>> 23; let yt2 := y2.raw >>> 23
-  let (mapxstep, portion, ystep) ← if xt2 == xt1 then
-      pure ((0 : Int32), Fixed.ofInt 1, Fixed.ofInt 256)
-    else do
-      let fraction : Fixed := ⟨(x1.raw >>> 7) &&& 65535⟩
-      let portion := if xt2 > xt1 then Fixed.ofInt 1 - fraction else fraction
-      let step ← checkedPathDiv (y2-y1) (← checkedPathAbs (x2-x1))
-      pure (if xt2 > xt1 then 1 else -1, portion, step)
-  let mut yi := (⟨y1.raw >>> 7⟩ : Fixed) + portion * ystep
-  let (mapystep, portion, xstep) ← if yt2 == yt1 then
-      pure ((0 : Int32), Fixed.ofInt 1, Fixed.ofInt 256)
-    else do
-      let fraction : Fixed := ⟨(y1.raw >>> 7) &&& 65535⟩
-      let portion := if yt2 > yt1 then Fixed.ofInt 1 - fraction else fraction
-      let step ← checkedPathDiv (x2-x1) (← checkedPathAbs (y2-y1))
-      pure (if yt2 > yt1 then 1 else -1, portion, step)
-  let mut xi := (⟨x1.raw >>> 7⟩ : Fixed) + portion * xstep
+  let x1 := initial.x1; let y1 := initial.y1
+  let xt1 := initial.startBlockX; let yt1 := initial.startBlockY
+  let xt2 := initial.endBlockX; let yt2 := initial.endBlockY
+  let (mapxstep, portion, ystep) ← initial.xStep
+  let mut yi := pathFirstIntercept y1 portion ystep
+  let (mapystep, portion, xstep) ← initial.yStep
+  let mut xi := pathFirstIntercept x1 portion xstep
   let mut mapx := xt1; let mut mapy := yt1
   let mut seen := Array.replicate scene.lines.size false
   for _ in [:64] do
-    let inside := mapx.toInt ≥ 0 && mapy.toInt ≥ 0 &&
-      mapx.toInt < grid.width && mapy.toInt < grid.height
-    let cell := mapy.toInt.toNat * grid.width + mapx.toInt.toNat
+    let inside := pathCellInside mapx mapy grid.width grid.height
+    let cell := pathCellIndex mapx mapy grid.width
     if flags &&& 1 != 0 then
       result := { result with blocks := result.blocks.push (true, mapx, mapy) }
       if inside then

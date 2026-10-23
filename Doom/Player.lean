@@ -3,6 +3,7 @@ import Doom.WorldPhysics
 import Doom.HeightClip
 import Doom.ActorFlags
 import Doom.Inventory
+import Doom.PlayerAnim
 
 namespace Doom
 open Collision
@@ -16,6 +17,9 @@ structure Player where
   feet : Float
   velocityZ : Float := 0
   body : Motion := {}
+  animation : PlayerAnim.State := {}
+  reactionTime : Int32 := 0
+  cachedOnGround : Bool := false
   view : ViewState := {}
   keyboard : KeyboardState := {}
   scene : Option Scene := none
@@ -38,6 +42,9 @@ private def mapActor (m : Map) (t : Thing) : Except String SolidThing := do
   let linked := t.active && flags.isSome && (thingDef t.kind).isSome
   return {
     kind := t.kind, pickup, x, y, radius := Fixed.ofInt spec.radius, solid, sector,
+    -- Disabled map slots also represent already removed pickups. Rebuilding
+    -- one after its flags change must not resurrect an inert actor in the scene.
+    removed := !t.active,
     z := Fixed.ofInt (if spec.ceiling then sec.ceiling - spec.height else sec.floor),
     height := Fixed.ofInt spec.height, floor := Fixed.ofInt sec.floor,
     ceiling := Fixed.ofInt sec.ceiling,
@@ -67,10 +74,12 @@ def Player.spawn (m : Map) : Except String Player := do
     pickupPlayer := some { actor := 0, profile := { commercial := m.name.startsWith "MAP" } } }
   -- Spawn links in map order; the player slot remains stable at index zero.
   for i in [:m.things.size] do
-    scene ← scene.linkThing (if i == start then 0 else i+1) m.sectorAt
+    let id := if i == start then 0 else i+1
+    if !scene.things[id]!.removed then scene ← scene.linkThing id m.sectorAt
   return {
     camera := { camera with angle }, feet := body.z.toFloat, body,
-    view := { z := camera.z }, scene := some scene, mapActors := m.things }
+    -- G_PlayerReborn zeroes viewz; P_CalcHeight first computes it during play.
+    view := { z := ⟨0⟩ }, scene := some scene, mapActors := m.things }
 
 private def number (n : Int) : Float := n.toInt64.toFloat
 
@@ -110,7 +119,7 @@ def Player.syncScene (p : Player) (m : Map) : Except String Scene := do
       scene := { scene with things := scene.things.set! (i+1) (← mapActor m t) }
     else
       scene := { scene with things := scene.things.push (← mapActor m t) }
-    scene ← scene.linkThing (i+1) m.sectorAt
+    if !scene.things[i+1]!.removed then scene ← scene.linkThing (i+1) m.sectorAt
   return scene
 
 /-- SDL key-mask adapter to the separately reference-tested keyboard builder. -/
@@ -120,37 +129,61 @@ def walkingKeys (keys : UInt32) : MovementKeys := {
   strafeLeft := keyDown keys 8, strafeRight := keyDown keys 16,
   speed := keyDown keys 512, attack := keyDown keys 8192, use := keyDown keys 4096 }
 
-/-- One 35 Hz walking tick. Unsupported collision domains propagate errors;
-there is no fallback to approximate movement. Special crossings are recorded
-for inspection; supported lighting handlers execute immediately in the callback. -/
-def Player.tick (m : Map) (p : Player) (keys : UInt32) (dropped : Array Nat := #[])
+/-- Prepare the command and view without advancing the player's position.
+The runtime runs use/fire and counters between this and moveTick. -/
+def Player.prepareTick (m : Map) (p : Player) (keys : UInt32)
+    (command : Option Ticcmd := none) : Except String (Player × Ticcmd) := do
+  let scene ← p.syncScene m
+  let (cmd, keyboard) := match command with
+    | some cmd => (cmd, p.keyboard)
+    | none => p.keyboard.build (walkingKeys keys)
+  let result ← scene.preparePlayerPhysics 0 p.body p.view cmd p.levelTime p.reactionTime p.cachedOnGround
+  let animation := PlayerReaction.animate p.animation p.reactionTime cmd
+  return ({ p with
+    body := result.body, view := result.view, keyboard, animation,
+    reactionTime := PlayerReaction.remaining p.reactionTime, cachedOnGround := result.onGround,
+    camera := ⟨result.body.x, result.body.y, result.view.z, result.body.angle⟩,
+    scene := some result.scene, mapActors := m.things }, cmd)
+
+/-- Advance the prepared player's mobj. Resynchronize after player actions so
+weapon damage, removed actors and changed inventory survive into collision. -/
+def Player.moveTick (m : Map) (p : Player) (cmd : Ticcmd) (dropped : Array Nat := #[])
     (lighting : Option SectorLights.World := none) : Except String Player := do
   let mut scene ← p.syncScene m
   let some collector := scene.pickupPlayer | throw "player: missing pickup state"
-  -- PlayerThink counters precede the movement thinker and its item contacts.
-  let inventory := p.inventory.tick
-  scene := { scene with pickupPlayer := some { collector with state := inventory.toPickup }, pickupEvents := #[], lighting }
+  scene := { scene with pickupPlayer := some { collector with state := p.inventory.toPickup }, pickupEvents := #[], lighting }
   for index in dropped do
     let some thing := scene.things[index+1]? | throw "player: invalid dropped item"
     if let some item := thing.pickup then
       scene := { scene with things := scene.things.set! (index+1) { thing with pickup := some { item with dropped := true } } }
-  let (cmd, keyboard) := p.keyboard.build (walkingKeys keys)
-  let result ← scene.playerPhysics 0 p.body p.view cmd p.levelTime m.sectorAt
+  let result ← scene.movePlayerPhysics 0 p.body p.view cmd m.sectorAt
     (fun current event => do
       let some world := current.lighting | return current
       let world ← world.crossAll event.line (current.pickupPlayer.any (·.actor == event.actor))
       let some line := current.lines[event.line]? | throw "player: crossed line disappeared"
       return { current with
         lighting := some world
-        lines := current.lines.set! event.line { line with special := world.map.lines[event.line]!.special != 0 } })
+        lines := current.lines.set! event.line { line with special := world.map.lines[event.line]!.special != 0 } }) (p.inventory.health == 0)
   let body := result.body
+  let stopped := result.frictionSample.any fun f =>
+    f.after.momx.raw == 0 && f.after.momy.raw == 0 &&
+    f.before.z.raw ≤ f.before.floorz.raw && cmd.forwardMove == 0 && cmd.sideMove == 0
+  let animation := if stopped && p.animation.frame ≥ 150 && p.animation.frame ≤ 153
+    then (PlayerAnim.enter 149).1 else p.animation
   let some collector := result.scene.pickupPlayer | throw "player: lost pickup state"
   return { p with
     inventory := Inventory.fromPickup collector.state,
     camera := ⟨body.x, body.y, result.view.z, body.angle⟩,
-    feet := body.z.toFloat, velocityZ := body.momz.toFloat, body,
-    view := result.view, keyboard, scene := some result.scene, mapActors := m.things,
+    feet := body.z.toFloat, velocityZ := body.momz.toFloat, body, animation,
+    view := result.view, scene := some result.scene, mapActors := m.things,
     levelTime := p.levelTime + 1, landingEvents := p.landingEvents + (if result.landing then 1 else 0),
     crossings := result.crossings, frictionSample := result.frictionSample }
+
+/-- Movement-only adapter. Gameplay uses the split entry points to interleave
+player actions at the original PlayerThink / mobj-thinker boundary. -/
+def Player.tick (m : Map) (p : Player) (keys : UInt32) (dropped : Array Nat := #[])
+    (lighting : Option SectorLights.World := none) (command : Option Ticcmd := none) : Except String Player := do
+  let (p, cmd) ← p.prepareTick m keys command
+  ({ p with inventory := p.inventory.tick } : Player).moveTick m cmd dropped lighting
 
 end Doom

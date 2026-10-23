@@ -32,7 +32,7 @@ def room(shift=0):
                               for i in range(4))),
         ("SIDEDEFS", pack("hh", -8, 16) + name("-") * 2 + name("WALL") + pack("H", 0)),
         ("VERTEXES", b"".join(pack("hh", *v) for v in vertices)),
-        ("SEGS", b"".join(pack("6H", i, (i + 1) % 4, i * 16384, i, 0, 0)
+        ("SEGS", b"".join(pack("6H", i, (i + 1) % 4, [16384,0,49152,32768][i], i, 0, 0)
                           for i in range(4))),
         ("SSECTORS", pack("HH", 4, 0)),
         ("NODES", b""),

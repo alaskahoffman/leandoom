@@ -1,0 +1,8 @@
+{
+  "exe_profile": "original-mul.json",
+  "code_offset": "0x33169",
+  "file_offset": "0x7517d",
+  "hex": "89c18d70080fbf5e028b00c1e310015820",
+  "instructions": 6,
+  "scope": "P_MovePlayer angle-update block after prologue; EAX holds player pointer; player+0 holds mobj pointer, player+10 signed turn command, mobj+32 angle."
+}

@@ -1,0 +1,50 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x27020",
+      "file_offset": "0x69034",
+      "hex": "a358b902008b42348b1580350100428b0089158035010031d2e922ffffff",
+      "relocations": [
+        {
+          "offset": 19,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 10,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2b958"
+        }
+      ]
+    },
+    "sector": {
+      "code_offset": "0x26f60",
+      "file_offset": "0x68f74",
+      "hex": "535156575583ec0489c389d18b15803501003b5042750c8d41013b43120f8d8e000000a1803501008943428d41018b7b4e894312a158b9020031f689431685ff0f8e6b000000",
+      "relocations": [
+        {
+          "offset": 53,
+          "object": 3,
+          "target": "0x2b958"
+        },
+        {
+          "offset": 36,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 14,
+          "object": 3,
+          "target": "0x13580"
+        }
+      ]
+    }
+  },
+  "scope": "P_NoiseAlert entry through tail jump; P_RecursiveSound prologue, revisit guard and sector target/traversal writes. Stops before line traversal or return epilogue; firing composition keeps actor/psprite contracts explicit."
+}

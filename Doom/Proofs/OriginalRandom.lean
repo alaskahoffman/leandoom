@@ -7,7 +7,7 @@ set_option backward.isDefEq.respectTransparency false
 set_option linter.unusedSimpArgs false
 
 namespace Doom.Proofs
-open Verification X86 X86Routine
+open Verification X86 X86ValueRoutine
 
 def rngProgram (addr : Nat) : Nat → Option (Op × Nat)
   | 0 => some (.loadEax addr, 5)
@@ -31,7 +31,7 @@ theorem rng_execution (addr : Nat) (words : Nat → Word) (bytes : Nat → BitVe
       some ((bytes (0x1261c + (incrementIndex (words addr)).toNat)).setWidth 32,
         (if 0x12720 = addr then incrementIndex (words addr) else words 0x12720),
         (if 0x1271c = addr then incrementIndex (words addr) else words 0x1271c)) := by
-  iterate 7 (rw [runProgram.eq_def]; simp [rngProgram, X86Routine.execute, put, putWord, write, eax])
+  iterate 7 (rw [runProgram.eq_def]; simp [rngProgram, X86ValueRoutine.execute, put, putWord, write, eax])
   simp only [rngObserve, write, eax, if_true]
   rw [lowByte_mask]
   rfl
@@ -112,42 +112,42 @@ def clearProgram : Nat → Option (Op × Nat)
 theorem clear_program_matches (r : DoomRandom) :
     rngObserve (runProgram clearProgram 6 (rngInputs r)) = some (0, 0, 0) := by
   unfold rngInputs
-  iterate 6 (rw [runProgram.eq_def]; simp [clearProgram, X86Routine.execute, put, putWord, write, eax, edx])
+  iterate 6 (rw [runProgram.eq_def]; simp [clearProgram, X86ValueRoutine.execute, put, putWord, write, eax, edx])
   simp [rngObserve, write, eax]
 
 set_option maxRecDepth 4096 in
 private theorem rng_decode_play : ∀ pc : Fin 28, rngProgram 0x12720 pc.val ≠ none →
-    X86Routine.decode (Doom19.playRandomBytes.drop pc.val) = rngProgram 0x12720 pc.val := by decide
+    X86ValueRoutine.decode (Doom19.playRandomBytes.drop pc.val) = rngProgram 0x12720 pc.val := by decide
 set_option maxRecDepth 4096 in
 private theorem rng_decode_misc : ∀ pc : Fin 28, rngProgram 0x1271c pc.val ≠ none →
-    X86Routine.decode (Doom19.miscRandomBytes.drop pc.val) = rngProgram 0x1271c pc.val := by decide
+    X86ValueRoutine.decode (Doom19.miscRandomBytes.drop pc.val) = rngProgram 0x1271c pc.val := by decide
 set_option maxRecDepth 4096 in
 private theorem rng_decode_clear : ∀ pc : Fin 17, clearProgram pc.val ≠ none →
-    X86Routine.decode (Doom19.clearRandomBytes.drop pc.val) = clearProgram pc.val := by decide
+    X86ValueRoutine.decode (Doom19.clearRandomBytes.drop pc.val) = clearProgram pc.val := by decide
 
 private theorem rng_bounded (addr pc : Nat) (h : rngProgram addr pc ≠ none) : pc < 28 := by
   unfold rngProgram at h
   split at h <;> simp_all <;> omega
 
 theorem play_matches_doom19 (r : DoomRandom) :
-    rngObserve (X86Routine.run Doom19.playRandomBytes 7 (rngInputs r)) = some (rngAnswer r.nextPlay) := by
+    rngObserve (X86ValueRoutine.run Doom19.playRandomBytes 7 (rngInputs r)) = some (rngAnswer r.nextPlay) := by
   have hp := play_program_matches r
   rw [runProgram_sound _ (rngProgram 0x12720) (fun pc h => rng_decode_play ⟨pc, rng_bounded _ _ h⟩ h)]
   · exact hp
   · intro h; rw [h] at hp; contradiction
 
 theorem misc_matches_doom19 (r : DoomRandom) :
-    rngObserve (X86Routine.run Doom19.miscRandomBytes 7 (rngInputs r)) = some (rngAnswer r.nextMisc) := by
+    rngObserve (X86ValueRoutine.run Doom19.miscRandomBytes 7 (rngInputs r)) = some (rngAnswer r.nextMisc) := by
   have hp := misc_program_matches r
   rw [runProgram_sound _ (rngProgram 0x1271c) (fun pc h => rng_decode_misc ⟨pc, rng_bounded _ _ h⟩ h)]
   · exact hp
   · intro h; rw [h] at hp; contradiction
 
 theorem clear_matches_doom19 (r : DoomRandom) :
-    rngObserve (X86Routine.run Doom19.clearRandomBytes 6 (rngInputs r)) = some (0, 0, 0) := by
+    rngObserve (X86ValueRoutine.run Doom19.clearRandomBytes 6 (rngInputs r)) = some (0, 0, 0) := by
   have hp := clear_program_matches r
   have sound : ∀ pc, clearProgram pc ≠ none →
-      X86Routine.decode (Doom19.clearRandomBytes.drop pc) = clearProgram pc := by
+      X86ValueRoutine.decode (Doom19.clearRandomBytes.drop pc) = clearProgram pc := by
     intro pc h
     have bound : pc < 17 := by
       unfold clearProgram at h
@@ -176,7 +176,7 @@ def decodeRngAnswer (call : RandomCall) (answer : Word × Word × Word) : Option
 
 def binaryRandomStep (code : RandomCall → List UInt8) (table : List UInt8)
     (call : RandomCall) (r : DoomRandom) : Option (Option Nat × DoomRandom) :=
-  (rngObserve (X86Routine.run (code call) (randomFuel call) (rngInputs r table))).map (decodeRngAnswer call)
+  (rngObserve (X86ValueRoutine.run (code call) (randomFuel call) (rngInputs r table))).map (decodeRngAnswer call)
 
 def engineRandomStep (call : RandomCall) (r : DoomRandom) : Option Nat × DoomRandom :=
   match call with

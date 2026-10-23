@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 import math
+import render_projection_reference as render_reference
 
 from test_wad import EXE, name, pack, room, wad
 from test_render import two_rooms
@@ -57,6 +58,10 @@ def artwork(rows=None, texture_names=("WALL",), flats=("FLOOR", "CEIL")):
         ("F_START", b""),
         *[(label, bytes((x+3*y) % 256 for y in range(64) for x in range(64))) for label in flats],
         ("F_END", b""),
+        # Transparent effect artwork keeps unrelated pixel fixtures focused;
+        # impact-specific tests replace these with visible patches.
+        *[(label,patch([[None]])) for label in
+          ('PUFFA0','PUFFB0','PUFFC0','PUFFD0','BLUDA0','BLUDB0','BLUDC0')],
     ]
 
 
@@ -190,7 +195,7 @@ class AssetTests(unittest.TestCase):
         rows = [[y+1]*8 for y in range(128)]
         lumps = room() + artwork(rows)
         normal = self.render(lumps)
-        # At y=100, world z=24.8; ceiling 128 + row offset 16 gives v=119.
+        # The center row starts exactly at texturemid (no half-pixel offset).
         self.assertEqual(self.pixel(normal, 160, 100), rgb(120))
         lines = bytearray(dict(lumps)["LINEDEFS"])
         struct.pack_into("<H", lines, 2*14+4, 17)
@@ -199,48 +204,56 @@ class AssetTests(unittest.TestCase):
         self.assertEqual(self.pixel(pegged, 160, 100), rgb(104))
         stripes = [[x+1 for x in range(8)] for _ in range(128)]
         pattern = room() + artwork(stripes)
-        self.assertEqual(self.pixel(self.render(pattern), 160, 100), rgb(1))
+        # Original tangent-table rounding selects column 55, not 56.
+        u,scale=map(int,render_reference.evaluate(['column 0 4194304 4194304 -1073741824 -524288 160 0'])[0].split())
+        self.assertEqual(self.pixel(self.render(pattern), 160, 100), rgb(u%8+1))
         sides = bytearray(dict(pattern)["SIDEDEFS"])
         struct.pack_into("<h", sides, 0, -7)
-        self.assertEqual(self.pixel(self.render(replace(pattern, "SIDEDEFS", bytes(sides))), 160, 100), rgb(2))
+        self.assertEqual(self.pixel(self.render(replace(pattern, "SIDEDEFS", bytes(sides))), 160, 100), rgb((u+1)%8+1))
 
     def test_floor_world_projection(self):
         pixels = self.render(room() + artwork(), (0, 0, 0, 0))
-        # depth=16*160/99.5=25.7286, (floor(wx),floor(-wy)) = (25,0).
-        self.assertEqual(self.pixel(pixels, 160, 199), rgb(25))
+        # The row starts at x=0, then accumulates the original rounded steps.
+        _,xf,yf,xs,ys=map(int,render_reference.evaluate(['plane 0 0 0 1048576 200 199 0'])[0].split())
+        def packed(x,y):return ((x<<10)&0xffff0000)|((y>>6)&65535)
+        pos=(packed(xf,yf)+160*packed(xs,ys))&0xffffffff
+        u=pos>>26;v=(pos>>10)&63
+        self.assertEqual(self.pixel(pixels, 160, 199), rgb((u+3*v)%256))
 
     def test_perspective_uv_and_near_plane_preserve_world_alignment(self):
         geom = replace(room(), "VERTEXES", b"".join(pack("hh", *v) for v in
                        [(-64, -64), (-64, 64), (64, 64), (128, -64)]))
+        # A node builder supplies the slanted seg's binary angle in the WAD.
+        seg_angle=int(math.atan2(-128,64)*65536/(2*math.pi)) & 65535
+        segs=bytearray(dict(geom)['SEGS']);struct.pack_into('<H',segs,2*12+4,seg_angle)
+        geom=replace(geom,'SEGS',bytes(segs))
         art = artwork([[x+1 for x in range(8)] for _ in range(128)])
         for angle, columns in [(0, (100, 160, 220)), (75, (260, 280, 300))]:
             with self.subTest(angle=angle):
                 pixels = self.render(geom + art, (0, 0, 25, angle))
-                # Independent ray/line intersection with the slanted east wall.
-                # At 75 degrees one endpoint is behind the camera's near plane.
-                a = math.radians(angle)
+                # Compare actual texels with extracted original C, including
+                # a wall with an endpoint behind the camera at 75 degrees.
                 for x in columns:
-                    screen = (x+0.5-160)/160
-                    dx = math.cos(a) + screen*math.sin(a)
-                    dy = math.sin(a) - screen*math.cos(a)
-                    slope = dy/dx
-                    along = (64-64*slope)/(128+64*slope)
-                    self.assertTrue(0 <= along <= 1)
-                    u = -8 + along*math.hypot(64, 128)
-                    self.assertEqual(self.pixel(pixels, x, 100), rgb(math.floor(u) % 8 + 1))
+                    raw_angle=angle*2**32//360
+                    raw_seg=(seg_angle<<16)-2**32
+                    u,_=map(int,render_reference.evaluate([f'column {raw_angle} 4194304 4194304 {raw_seg} -524288 {x} 0'])[0].split())
+                    self.assertEqual(self.pixel(pixels, x, 100), rgb(u%8+1))
 
     def test_upper_and_lower_texture_pegging(self):
         art = artwork([[y+1]*8 for y in range(128)],
                       ("NEARWALL", "FARWALL", "UPPER", "LOWER"), ("FLOOR_A", "FLOOR_B", "CEILING"))
         geom = two_rooms()
         normal = self.render(geom + art)
-        self.assertEqual(self.pixel(normal, 160, 20), rgb(120))
-        self.assertEqual(self.pixel(normal, 160, 160), rgb(16))
+        _,scale=map(int,render_reference.evaluate(['column 0 4194304 4194304 -1073741824 0 160 0'])[0].split())
+        def expected(anchor,y):
+            return rgb(int(render_reference.evaluate([f'wallpixel {scale} {(anchor-25)*65536} 200 {y} 0 0 0'])[0])+1)
+        self.assertEqual(self.pixel(normal, 160, 20), expected(48+128,20))
+        self.assertEqual(self.pixel(normal, 160, 160), expected(16,160))
         lines = bytearray(dict(geom)["LINEDEFS"])
         struct.pack_into("<H", lines, 2*14+4, 4+8+16)
         unpegged = self.render(replace(geom, "LINEDEFS", bytes(lines)) + art)
-        self.assertEqual(self.pixel(unpegged, 160, 20), rgb(72))
-        self.assertEqual(self.pixel(unpegged, 160, 160), rgb(128))
+        self.assertEqual(self.pixel(unpegged, 160, 20), expected(128,20))
+        self.assertEqual(self.pixel(unpegged, 160, 160), expected(128,160))
 
     def test_sky_portal_does_not_draw_upper_wall(self):
         art = artwork([[7]*8 for _ in range(128)],
@@ -258,7 +271,8 @@ class AssetTests(unittest.TestCase):
         self.assertEqual(self.pixel(pixels, 160, 30), rgb(124))
 
     def test_sector_light_selects_real_colormap_rows(self):
-        art = replace(artwork(), "COLORMAP", b"".join(bytes([32+i])*256 for i in range(32)))
+        # Full-height columns keep this a lighting test, not an out-of-post read.
+        art = replace(artwork([[1]*8 for _ in range(128)]), "COLORMAP", b"".join(bytes([32+i])*256 for i in range(32)))
         geom = room()
         sector = bytearray(dict(geom)["SECTORS"])
         struct.pack_into("<h", sector, 20, 255)
@@ -279,8 +293,9 @@ class AssetTests(unittest.TestCase):
         sides = bytearray(dict(geom)["SIDEDEFS"])
         sides[20:28] = name("FENCE")
         pixels = self.render(replace(geom, "SIDEDEFS", bytes(sides)) + art)
-        self.assertEqual(self.pixel(pixels, 160, 100), rgb(200))
-        self.assertEqual(self.pixel(pixels, 163, 100), rgb(7))
+        for x in [160,163]:
+            u,_=map(int,render_reference.evaluate([f'column 0 4194304 4194304 -1073741824 0 {x} 0'])[0].split())
+            self.assertEqual(self.pixel(pixels,x,100),rgb(200 if u%2==0 else 7))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,52 @@
+{
+  "units": {
+    "entry": {
+      "code_offset": "0x2e3e0",
+      "file_offset": "0x703f4",
+      "size": 101,
+      "sha256": "2b0abb0203282b4593c25031eadc7d311c79a9f196f6c6f4b283201424a4e721",
+      "hex": "53515256575583ec0889c1bb1e00000031d2e8b9a70000f7f3a31cc102008d14c50000000031db01d0ba3200000001c0e87bb2000089c3a318c10200a11cc102008d34c50000000001c631d201f689d889f3e8391a0100ba0100000089c831ede8bba80000",
+      "relocations": [
+        {
+          "offset": 26,
+          "object": 3,
+          "target": "0x2c11c"
+        },
+        {
+          "offset": 56,
+          "object": 3,
+          "target": "0x2c118"
+        },
+        {
+          "offset": 61,
+          "object": 3,
+          "target": "0x2c11c"
+        }
+      ]
+    },
+    "length": {
+      "code_offset": "0x38bb0",
+      "file_offset": "0x7abc4",
+      "size": 52,
+      "sha256": "c4559ea5d3e3ce0a626c3c7c6f30d7a5b91813447774fff7a43a8dbd4df1ca33",
+      "hex": "5289c23b05a04f07007c0e5068dc390200e84a1ffeff83c4088d04950000000001c2a1a44f07008d1495000000008b4402105ac3",
+      "relocations": [
+        {
+          "offset": 5,
+          "object": 3,
+          "target": "0x74fa0"
+        },
+        {
+          "offset": 13,
+          "object": 3,
+          "target": "0x239dc"
+        },
+        {
+          "offset": 35,
+          "object": 3,
+          "target": "0x74fa4"
+        }
+      ]
+    }
+  }
+}

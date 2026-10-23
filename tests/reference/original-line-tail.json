@@ -1,0 +1,101 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "finish": {
+      "code_offset": "0x2c6bb",
+      "file_offset": "0x6e6cf",
+      "hex": "89c285c07d0eb80100000083c4105d5e5a595bc3833d24c002000074183d000001007d1183793200750b31c083c4105d5e5a595bc38b1528c0020083c20cc742f8010000008942f4894afcb801000000891528c0020083c4105d5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 82,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 55,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 22,
+          "object": 3,
+          "target": "0x2c024"
+        }
+      ]
+    },
+    "cell": {
+      "code_offset": "0x2c541",
+      "file_offset": "0x6e555",
+      "hex": "0fafd301d08b1500c102000fbf04428b150cc1020001c001c2eb236bc03e8b1d20c1020001d88b3d803501003b7836740a897836ff142485c0741083c2020fbf0283f8ff75d5",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c100"
+        },
+        {
+          "offset": 40,
+          "object": 3,
+          "target": "0x13580"
+        },
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x2c120"
+        },
+        {
+          "offset": 17,
+          "object": 3,
+          "target": "0x2c10c"
+        }
+      ]
+    },
+    "lineEntry": {
+      "code_offset": "0x2c520",
+      "file_offset": "0x6e534",
+      "hex": "5783ec04891c2485c07c5c85d27c588b1dfcc0020039d87d4e3b1510c102007d46",
+      "relocations": [
+        {
+          "offset": 27,
+          "object": 3,
+          "target": "0x2c110"
+        },
+        {
+          "offset": 17,
+          "object": 3,
+          "target": "0x2c0fc"
+        }
+      ]
+    },
+    "lineReturn": {
+      "code_offset": "0x2c587",
+      "file_offset": "0x6e59b",
+      "hex": "b80100000083c4045fc3",
+      "relocations": []
+    },
+    "helper": {
+      "code_offset": "0x2c2d0",
+      "file_offset": "0x6e2e4",
+      "hex": "535156575589c689d18b58088b420cc1f808f7eb0facd01089c78b41088b5e0cc1f808f7eb0facd01029c7750431c0eb2d8b012b068b590cc1f808f7eb0facd01089c58b46042b41048b5908c1f808f7eb0facd01089fa01e8e8520effff5d5f5e595bc3",
+      "relocations": []
+    },
+    "setup": {
+      "code_offset": "0x2c691",
+      "file_offset": "0x6e6a5",
+      "hex": "8b018b008904248b018b4004894424048b4108894424088b410c89e28944240cb810ba0200e815fcffff",
+      "relocations": [
+        {
+          "offset": 33,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    },
+    "division": {
+      "code_offset": "0x1d180",
+      "file_offset": "0x5f194",
+      "hex": "53515689c189d39931d029d089c689d8c1fe0e9931d029d039c67c1531cb85db0f9cc025ff00000005ffffff7f5e595bc389c8990fa4c210c1e010f7fb5e595bc3",
+      "relocations": []
+    }
+  }
+}

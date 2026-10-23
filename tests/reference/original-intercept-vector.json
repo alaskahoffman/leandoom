@@ -1,0 +1,23 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "helper": {
+      "code_offset": "0x2c2d0",
+      "file_offset": "0x6e2e4",
+      "hex": "535156575589c689d18b58088b420cc1f808f7eb0facd01089c78b41088b5e0cc1f808f7eb0facd01029c7750431c0eb2d8b012b068b590cc1f808f7eb0facd01089c58b46042b41048b5908c1f808f7eb0facd01089fa01e8e8520effff5d5f5e595bc3",
+      "relocations": []
+    },
+    "setup": {
+      "code_offset": "0x2c691",
+      "file_offset": "0x6e6a5",
+      "hex": "8b018b008904248b018b4004894424048b4108894424088b410c89e28944240cb810ba0200e815fcffff",
+      "relocations": [
+        {
+          "offset": 33,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    }
+  }
+}

@@ -67,12 +67,12 @@ class HitscanTests(unittest.TestCase):
         for row in shots[1:]:self.assertIn('d 1 5 0 0',row.split('|')[0])
 
     def test_solid_nonshootable_decoration_does_not_absorb_bullet(self):
-        result=self.state(arena([(160,0,0,3004,7)],extras=[(64,0,0,2028,7)]),'5:8192')
-        self.assertEqual(result['actors'][0]['health'],5)
+        result=self.state(arena([(160,0,0,3004,7)],extras=[(64,0,0,2028,7)]),'19:8192')
+        self.assertEqual(result['actors'][0]['health'],10) # Static decoration also consumes lastlook.
         self.assertEqual([e['kind'] for e in result['shotEvents']],['blood','damage'])
 
     def test_barrel_stops_bullet_with_puff_before_damage_request(self):
-        result=self.state(arena([(160,0,0,3004,7)],extras=[(64,0,0,2035,7)]),'5:8192')
+        result=self.state(arena([(160,0,0,3004,7)],extras=[(64,0,0,2035,7)]),'19:8192')
         self.assertEqual(result['actors'][0]['health'],20)
         self.assertEqual([e['kind'] for e in result['shotEvents']],['puff','damage'])
         self.assertEqual(result['shotEvents'][-1]['target'],2)
@@ -81,36 +81,36 @@ class HitscanTests(unittest.TestCase):
     def test_actor_diagonal_intersection_replaces_cylinder_entry(self):
         # Cylinder entry would hit (80,-12) first; after the BLOCKMAP boundary
         # nudge the original actor diagonals put (90,0) first instead.
-        result=self.state(arena([(90,0,0,3004,7),(80,-12,0,3004,7)]),'5:8192')
+        result=self.state(arena([(90,0,0,3004,7),(80,-12,0,3004,7)]),'19:8192')
         self.assertEqual([(a['x'],a['health']) for a in result['actors']],[(90,5),(80,20)])
         self.assertEqual(result['shotEvents'][-1]['target'],1)
 
     def test_blockmap_omission_is_respected(self):
-        blocked=self.state(wall_scene(),'5:8192')
+        blocked=self.state(wall_scene(),'19:8192')
         self.assertEqual(blocked['actors'][0]['health'],20)
         self.assertEqual([e['kind'] for e in blocked['shotEvents']],['puff'])
-        omitted=self.state(wall_scene(False),'5:8192')
-        self.assertEqual(omitted['actors'][0]['health'],5)
+        omitted=self.state(wall_scene(False),'19:8192')
+        self.assertEqual(omitted['actors'][0]['health'],15)
         self.assertEqual(omitted['shotEvents'][-1]['kind'],'damage')
 
     def test_vertical_autoaim_uses_actor_height_through_portal(self):
         geom=things(sectors(two_rooms(),first=(0,128),second=(24,128)),[(0,0,0,1,7),(144,0,0,3004,7)])
-        result=self.state(geom,'5:8192')
-        self.assertEqual(result['actors'][0]['health'],5)
+        result=self.state(geom,'19:8192')
+        self.assertEqual(result['actors'][0]['health'],15)
         self.assertGreater(result['shotSlope'],0)
         blood=next(e for e in result['shotEvents'] if e['kind']=='blood')
         self.assertGreater(blood['z'],36)
         self.assertLess(blood['z'],80)
 
     def test_shooting_exit_records_special_but_does_not_use_it(self):
-        result=self.state(wall_scene(special=11),'5:8192')
+        result=self.state(wall_scene(special=11),'19:8192')
         self.assertEqual([e['kind'] for e in result['shotEvents']],['special','puff'])
         self.assertEqual(result['specials'][-1],11)
         self.assertFalse(result['exitRequested'])
 
     def test_unported_shoot_special_reports_error(self):
         output=self.directory/'unsupported.json'
-        result=self.run_cli(['combat','E1M1','5:8192',output],wall_scene(special=46),ok=False)
+        result=self.run_cli(['combat','E1M1','19:8192',output],wall_scene(special=46),ok=False)
         self.assertIn('shoot-activated special 46 is not ported',result.stderr)
 
     def test_trace_reset_and_script_partition(self):

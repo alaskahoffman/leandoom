@@ -1,0 +1,50 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "fallback": {
+      "code_offset": "0x2d19f",
+      "file_offset": "0x6f1b3",
+      "hex": "31d2bb020000003b908c000000741c3b90a400000074143b15aca30200750cc7407405000000e9bc0000003b9098000000741c3b98a00000007d143b15bca30200740cc7407408000000e9980000003b908400000074143b909c000000740cc7407403000000e97c0000003b908000000074103b90a00000007408895874e9640000008b889c00000039ca7409c7407401000000eb518bb09400000039f17409c7407407000000eb3e3bb08800000074113bb0a80000007409c7407404000000eb253b9090000000741a83b8a4000000287e113b15aca302007509c7407406000000eb038950748378740a0f8416ffffff8b58708d149d0000000029da8b1cd5982d010031d2e896fdffff31c05e5a595bc3",
+      "relocations": [
+        {
+          "offset": 61,
+          "object": 3,
+          "target": "0x2a3bc"
+        },
+        {
+          "offset": 25,
+          "object": 3,
+          "target": "0x2a3ac"
+        },
+        {
+          "offset": 256,
+          "object": 3,
+          "target": "0x12d98"
+        },
+        {
+          "offset": 213,
+          "object": 3,
+          "target": "0x2a3ac"
+        }
+      ]
+    }
+  },
+  "scope": "E1M1 supported inventory fallback selection, actual lowering call and false return; attack-state return to noise CALL.",
+  "states": [
+    {
+      "index": 5,
+      "offset": "0x15ab4",
+      "hex": "02000000010000000400000000000000060000000000000000000000"
+    },
+    {
+      "index": 13,
+      "offset": "0x15b94",
+      "hex": "030000000000000004000000000000000e0000000000000000000000"
+    },
+    {
+      "index": 21,
+      "offset": "0x15c74",
+      "hex": "01000000000000000300000000000000160000000000000000000000"
+    }
+  ]
+}

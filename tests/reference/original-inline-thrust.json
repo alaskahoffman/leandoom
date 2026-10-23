@@ -1,0 +1,41 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "forwardThrustBytes": {
+      "code_offset": "0x33199",
+      "file_offset": "0x751ad",
+      "hex": "8b298b45208b1d84350100c1e8130fbefa8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c",
+      "instructions": 23,
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x13584"
+        },
+        {
+          "offset": 57,
+          "object": 3,
+          "target": "0x5a84"
+        }
+      ]
+    },
+    "sideThrustBytes": {
+      "code_offset": "0x331f1",
+      "file_offset": "0x75205",
+      "hex": "8b298b45202d000000408b1d84350100c1e8130fbefe8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c",
+      "instructions": 24,
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x13584"
+        },
+        {
+          "offset": 62,
+          "object": 3,
+          "target": "0x5a84"
+        }
+      ]
+    }
+  }
+}

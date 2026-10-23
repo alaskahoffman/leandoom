@@ -1,0 +1,23 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "traversal": {
+      "code_offset": "0x26fa6",
+      "file_offset": "0x68fba",
+      "hex": "31ed8b53528b142af6421004745289d0e885530000833d38c00200007e420fbf42166bc0128b3d18c1020001f8893c248b780e39fb750f0fbf42186bc0120304248b400eeb0289f8f6421040740b85c9750eba01000000eb0289cae85affffff468b434e83c50439c67c9783c4045d5f5e595bc3",
+      "relocations": [
+        {
+          "offset": 39,
+          "object": 3,
+          "target": "0x2c118"
+        },
+        {
+          "offset": 23,
+          "object": 3,
+          "target": "0x2c038"
+        }
+      ]
+    }
+  },
+  "scope": "Sound line-list entry, two-sided/openrange guards, sound-block recursion call, iteration and actual sector return. P_LineOpening and neighboring-sector selection remain explicit boundaries. Terminal/pruned child calls compose without replacing the callee."
+}

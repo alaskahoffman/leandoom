@@ -37,11 +37,26 @@ class DeathTests(unittest.TestCase):
         death = actor['death']
         self.assertEqual((actor['thing'],actor['kind'],actor['health']), (1,3004,0))
         self.assertEqual((death['health'],death['height'],death['state'],death['tics']),
-                         (-20,14,'S_POSS_DIE1',5))
+                         (-20,14,'S_POSS_DIE1',3))
         self.assertTrue(death['solid'])
         self.assertFalse(death['flags'] & 4)
         self.assertEqual(death['flags'] & (0x100000|0x400),0x100400)
-        self.assertEqual((state['kills'],state['dropped'],state['rng']),(1,[2],2))
+        self.assertEqual((state['kills'],state['dropped'],state['rng']),(1,[2],5))
+
+    def test_drop_preserves_fractional_xy_uses_floor_and_keeps_single_links(self):
+        path = self.directory/'fractional.wad'
+        path.write_bytes(wad(arena([(48,0,0,3004,7)])))
+        output = self.directory/'fractional.json'
+        for x,y in [(48*65536+32768,-1),(48*65536-1,32767)]:
+            for script in ['0:0','1:0']:
+                subprocess.run([str(ROOT/'.lake/build/bin/death-probe'),
+                    'runtime-position',str(x),str(y),str(24*65536),str(path),
+                    '1','0',script,str(output)],check=True,capture_output=True,timeout=15)
+                drop=json.loads(output.read_text())['dropBodies'][0]
+                # P_KillMobj: P_SpawnMobj(target->x,target->y,ONFLOORZ,...).
+                self.assertEqual(drop['position'],[x,y,drop['floor']])
+                self.assertTrue(drop['dropped'])
+                self.assertEqual((drop['blockLinks'],drop['sectorLinks']),(1,1))
 
     def test_strict_extreme_death_threshold_and_sprite_selection(self):
         for kind, threshold, prefix in [(3004,-20,'POSS'),(9,-30,'SPOS')]:
@@ -53,21 +68,21 @@ class DeathTests(unittest.TestCase):
         self.assertEqual(self.sim(-1000,kind=3002)['actors'][0]['pose'],'SARGI')
 
     def test_scream_and_fall_happen_on_original_state_entries(self):
-        before = self.sim(script='4:0')
-        scream = self.sim(script='5:0')
-        fall = self.sim(script='10:0')
+        before = self.sim(script='2:0')
+        scream = self.sim(script='3:0')
+        fall = self.sim(script='8:0')
         self.assertEqual(before['actors'][0]['pose'],'POSSH')
         self.assertEqual(scream['actors'][0]['pose'],'POSSI')
         self.assertTrue(scream['actors'][0]['death']['solid'])
-        self.assertEqual(scream['rng'],3)
-        self.assertTrue(any('podth2' in e['event'] for e in scream['deathEvents']))
+        self.assertEqual(scream['rng'],6)
+        self.assertTrue(any('podth3' in e['event'] for e in scream['deathEvents']))
         self.assertEqual(fall['actors'][0]['pose'],'POSSJ')
         self.assertFalse(fall['actors'][0]['death']['solid'])
         self.assertEqual(fall['kills'],1)
 
     def test_extreme_scream_does_not_draw_random_and_final_frame_persists(self):
-        scream = self.sim(-21,'5:0')
-        self.assertEqual(scream['rng'],2)
+        scream = self.sim(-21,'3:0')
+        self.assertEqual(scream['rng'],5)
         self.assertTrue(any('slop' in e['event'] for e in scream['deathEvents']))
         for script in ['40:0','100:0']:
             final = self.sim(-21,script)['actors'][0]
@@ -75,14 +90,14 @@ class DeathTests(unittest.TestCase):
             self.assertFalse(final['death']['solid'])
 
     def test_demon_falls_later_and_has_no_drop(self):
-        self.assertTrue(self.sim(-150,'19:0',3002)['actors'][0]['death']['solid'])
-        fall = self.sim(-150,'20:0',3002)
+        self.assertTrue(self.sim(-150,'17:0',3002)['actors'][0]['death']['solid'])
+        fall = self.sim(-150,'18:0',3002)
         self.assertFalse(fall['actors'][0]['death']['solid'])
         self.assertEqual(fall['actors'][0]['pose'],'SARGL')
         self.assertEqual(fall['dropped'],[])
 
     def test_solid_corpse_blocks_then_releases_player_and_drop_is_pickable(self):
-        blocked = self.sim(script='9:2')
+        blocked = self.sim(script='7:2')
         passed = self.sim(script='40:2')
         self.assertLessEqual(blocked['x'],12)
         self.assertGreater(passed['x'],64)
@@ -90,7 +105,7 @@ class DeathTests(unittest.TestCase):
         self.assertEqual(passed['ammo'][0],55)  # Original half-clip dropped ammo.
 
     def test_dead_actor_no_longer_intercepts_bullets(self):
-        state = self.sim(script='5:8192',enemies=[(48,0,0,3004,7),(96,0,0,3004,7)])
+        state = self.sim(script='19:8192',enemies=[(48,0,0,3004,7),(96,0,0,3004,7)])
         self.assertEqual(state['actors'][0]['health'],0)
         self.assertLess(state['actors'][1]['health'],20)
         self.assertEqual(state['kills'],1)
@@ -102,7 +117,7 @@ class DeathTests(unittest.TestCase):
         self.assertFalse(death['solid'])
         self.assertEqual(state['frags'],[1,0,0,0])
         self.assertTrue(any('dropWeapon' in e['event'] for e in state['deathEvents']))
-        scream = self.sim(-100,'10:0',target=-1,enemies=[])
+        scream = self.sim(-100,'9:0',target=-1,enemies=[])
         self.assertTrue(any('pldeth' in e['event'] for e in scream['deathEvents']))
         self.assertEqual(self.sim(-101,target=-1,enemies=[])['playerDeath']['state'],'S_PLAY_XDIE1')
 

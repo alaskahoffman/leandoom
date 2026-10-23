@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x4198c",
+      "file_offset": "0x839a0",
+      "hex": "5185db750431c0eb378a088a2a",
+      "relocations": []
+    },
+    "suffix": {
+      "code_offset": "0x419b5",
+      "file_offset": "0x839c9",
+      "hex": "740c31c031d288c888ea29d0eb0984ed74ca4b4240ebc159c3",
+      "relocations": []
+    }
+  },
+  "scope": "Comparator entry, actual byte loads and branch/return suffix; fold range inherited."
+}

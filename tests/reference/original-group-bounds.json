@@ -1,0 +1,36 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "box": {
+      "code_offset": "0x241e0",
+      "file_offset": "0x661f4",
+      "hex": "3b50087d05895008eb083b500c7e0389500c3b58047d04895804c33b187e028918c3",
+      "relocations": []
+    },
+    "first": {
+      "code_offset": "0x2e682",
+      "file_offset": "0x70696",
+      "hex": "8b1189e08b5a048b12e8505bffff",
+      "relocations": []
+    },
+    "second": {
+      "code_offset": "0x2e690",
+      "file_offset": "0x706a4",
+      "hex": "8b41048b58048b1089e083c604e83e5bffff",
+      "relocations": []
+    },
+    "advance": {
+      "code_offset": "0x2e6a2",
+      "file_offset": "0x706b6",
+      "hex": "a134c102004783c13e39c77cc7",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2c134"
+        }
+      ]
+    }
+  },
+  "scope": "Original M_AddToBox and P_GroupLines two vertex-call continuations and scan advance. Local conditional iteration; no complete scan termination, allocation/count pass, M_ClearBox entry or full startup."
+}

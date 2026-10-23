@@ -1,4 +1,4 @@
-/- Single-player, full-refresh ST_drawWidgets layout, Chocolate Doom 3.1.1.
+/- Single-player ST_drawWidgets layout and incremental widget refresh, Chocolate Doom 3.1.1.
 SPDX-License-Identifier: GPL-2.0-or-later. See Doom/Status.lean and COPYING.md. -/
 import Doom.Render
 
@@ -41,30 +41,63 @@ private def number (pixels backing : ByteArray) (patches : Std.HashMap String Pa
     pixels := named pixels patches (if digit.digit == 10 then "STTMINUS" else s!"{labelPrefix}{digit.digit}") digit.x y
   return pixels
 
-/-- Vanilla single-player widgets, in ST_drawWidgets order, full refresh.
-Multiplayer face backgrounds/frags and DOOM 1.0 split bars are not implemented. -/
-def draw (pixels : ByteArray) (patches : Std.HashMap String Patch)
-    (player : Pickup.State) (face : Face) : ByteArray := Id.run do
+/-- STlib restores an old icon's rectangle from STBAR, including transparent
+pixels, before drawing the new patch. STARMS is a separate widget, not backing. -/
+private def icon (pixels backing : ByteArray) (patches : Std.HashMap String Patch)
+    (old : Option String) (label : String) (x y : Int) (refresh : Bool) : ByteArray := Id.run do
+  if !refresh && old == some label then return pixels
+  let mut pixels := pixels
+  if let some old := old then
+    if let some patch := patches[old]? then
+      for dx in [:patch.image.width] do
+        for dy in [:patch.image.height] do
+          let sx := x-patch.leftOffset+Int.ofNat dx
+          let sy := y-patch.topOffset+Int.ofNat dy
+          if sx >= 0 && sx < 320 && sy >= 168 && sy < 200 then
+            let pos := sy.toNat*320+sx.toNat
+            pixels := pixels.set! pos backing[pos]!
+  return named pixels patches label x y
+
+/-- Vanilla single-player widgets, in ST_drawWidgets order. Numbers redraw on
+all presentations; percents and STARMS only on full refresh; multi-icons restore
+and redraw when their index changes. Multiplayer/frags remain unsupported. -/
+def drawWithHistory (pixels : ByteArray) (patches : Std.HashMap String Patch)
+    (player : Pickup.State) (face : Face) (previous : Option Widgets := none)
+    : ByteArray × Widgets := Id.run do
+  let refresh := previous.isNone
+  let mut widgets := previous.getD {}
   let backing := named pixels patches "STBAR" 0 168
-  let mut pixels := number backing backing patches "STTNUM" (readyAmmo player) 44 171
+  let mut pixels := if refresh then backing else pixels
+  pixels := number pixels backing patches "STTNUM" (readyAmmo player) 44 171
   for i in [:4] do
     let y := (#[173,179,191,185] : Array Int)[i]!
     pixels := number pixels backing patches "STYSNUM" player.ammo[i]! 288 y
     pixels := number pixels backing patches "STYSNUM" player.maxAmmo[i]! 314 y
-  pixels := named pixels patches "STTPRCNT" 90 171
+  if refresh then pixels := named pixels patches "STTPRCNT" 90 171
   pixels := number pixels backing patches "STTNUM" player.health 90 171
-  pixels := named pixels patches "STTPRCNT" 221 171
+  if refresh then pixels := named pixels patches "STTPRCNT" 221 171
   pixels := number pixels backing patches "STTNUM" player.armor 221 171
-  pixels := named pixels patches "STARMS" 104 168
+  if refresh then pixels := named pixels patches "STARMS" 104 168
   for i in [:6] do
     let label := if player.weapons[i+1]! then s!"STYSNUM{i+2}" else s!"STGNUM{i+2}"
-    pixels := named pixels patches label (111+Int.ofNat (i%3*12)) (172+Int.ofNat (i/3*10))
-  pixels := named pixels patches (faceName face.index) 143 168
+    pixels := icon pixels backing patches widgets.arms[i]! label
+      (111+Int.ofNat (i%3*12)) (172+Int.ofNat (i/3*10)) refresh
+    widgets := { widgets with arms := widgets.arms.set! i (some label) }
+  let label := faceName face.index
+  pixels := icon pixels backing patches widgets.face label 143 168 refresh
+  widgets := { widgets with face := some label }
   for i in [:3] do
     if h : i < 3 then
       if let some index := key player ⟨i,h⟩ then
-        pixels := named pixels patches s!"STKEYS{index}" 239 (171+Int.ofNat (i*10))
-  return pixels
+        let label := s!"STKEYS{index}"
+        pixels := icon pixels backing patches widgets.keys[i]! label 239 (171+Int.ofNat (i*10)) refresh
+        widgets := { widgets with keys := widgets.keys.set! i (some label) }
+  return (pixels,widgets)
+
+/-- Fresh-screen convenience used by offline exporters. -/
+def draw (pixels : ByteArray) (patches : Std.HashMap String Patch)
+    (player : Pickup.State) (face : Face) : ByteArray :=
+  (drawWithHistory pixels patches player face).1
 
 def toRgb (art : Art) (pixels : ByteArray) (palette : Nat) : ByteArray := Id.run do
   let mut rgb := ByteArray.emptyWithCapacity (pixels.size*3)

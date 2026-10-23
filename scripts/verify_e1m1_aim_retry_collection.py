@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Certify the next probe entry contract and continuous retry-to-collection execution."""
+import argparse,json,re,subprocess
+import verify_e1m1_aim_stamp_restart as previous
+ROOT,require=previous.ROOT,previous.require
+pinned_data,extracted=previous.pinned_data,previous.extracted
+HEADER=previous.HEADER
+GROUPS={'E1M1AimNextContext': ['common', 'payload', 'inputs', 'entry'],
+ 'E1M1AimNextCollection': ['execution'],
+ 'E1M1AimRetryCollection': ['execution']}
+CONTRACTS=[('E1M1AimNextContext', 'common', 'q thing angle second h'),
+ ('E1M1AimNextContext', 'payload', 'q thing angle second s c data safe'),
+ ('E1M1AimNextContext', 'inputs', 'q s next thing angle distance second cells h request data seen size image before'),
+ ('E1M1AimNextContext', 'entry', 'q s next thing angle distance second cells h request data seen size image before'),
+ ('E1M1AimNextCollection',
+  'execution',
+  'q pick s next thing angle distance second h request seen size image before nextX nextY okX okY data profile common height '
+  'statics scenes room'),
+ ('E1M1AimRetryCollection',
+  'execution',
+  'q pick s f thing angle distance h shooter shooterValue positive profile xout yout okX okY common height statics scenes '
+  'payloads separated callbackSafe cursorCall room portals walls who initial savedSafe returnSafe second nextPick nextX nextY '
+  'tables nextData watchedRead watchedSafe retrySafe controller resume stampSafe stampProtected stampRetry before nextOkX '
+  'nextOkY nextStatics nextScenes nextRoom')]
+NAMESPACE='Doom.Verification.ExtractedAimRetryCollection'
+
+def declaration(module,name):
+    source=(ROOT/f'Doom/Proofs/{module}.lean').read_text();a=source.index('theorem '+name+' ')
+    decl=source[a:a+re.search(r' := by| :=\n',source[a:]).start()]
+    owners={'Source':'E1M1AimQueryCaller','resolve':'E1M1ThingFinish',
+      'traversal':'E1M1PathMapQuery','nextAngle':'E1M1AimRetryGeometry',
+      'reads':'E1M1AimRetryInputs','Prepared':'E1M1AimRetryInputs',
+      'context':'E1M1AimNextContext','route':'E1M1AimNextContext'}
+    for word,owner in owners.items():
+        decl=re.sub(r'(?<![.\w])'+word+r'\b','Doom.Proofs.'+owner+'.'+word,decl)
+    return decl
+
+def certificate(data,raw):
+    source='import Doom.Proofs.E1M1AimRetryCollection\n'+previous.certificate(data,raw)
+    source+='\nnamespace '+NAMESPACE+'\n'+HEADER
+    source+='\n'.join([
+      'def linked := Doom.Verification.ExtractedAimStampRestart.linked',
+      'theorem linked_checked : linked=E1M1AimProgramLink.program :=',
+      '  Doom.Verification.ExtractedAimStampRestart.linked_checked',
+      'def returnProgram := Doom.Verification.ExtractedAimCompletedReturn.linked',
+      'theorem returnProgram_checked : returnProgram=E1M1AimCompletedReturn.program :=',
+      '  Doom.Verification.ExtractedAimCompletedReturn.linked_checked',
+      ''])
+    for module,name,args in CONTRACTS:
+        decl=declaration(module,name).replace('theorem '+name,'theorem '+name+'_checked',1)
+        decl=decl.replace('E1M1AimProgramLink.program','linked').replace('E1M1AimCompletedReturn.program','returnProgram')
+        source+='namespace '+module+'\n'+decl+' := by\n  '
+        if 'linked' in decl:source+='rw [linked_checked]\n  '
+        if 'returnProgram' in decl:source+='rw [returnProgram_checked]\n  '
+        source+='exact Doom.Proofs.'+module+'.'+name+' '+args+'\nend '+module+'\n'
+    source+='#print axioms linked_checked\n#print axioms returnProgram_checked\n'
+    source+='\n'.join('#print axioms '+m+'.'+n+'_checked' for m,n,_ in CONTRACTS)+'\nend '+NAMESPACE+'\n'
+    for m,names in GROUPS.items():source+='\n'.join('#print axioms Doom.Proofs.'+m+'.'+n for n in names)+'\n'
+    return source
+
+def audit(output):
+    marker="'"+NAMESPACE+".linked_checked'"
+    require(marker in output,'missing query selection audit')
+    before,rest=output.split(marker,1);previous.audit(before);rest=(marker+rest).strip()
+    names=[NAMESPACE+'.linked_checked',NAMESPACE+'.returnProgram_checked']
+    names+=[NAMESPACE+'.'+m+'.'+n+'_checked' for m,n,_ in CONTRACTS]
+    names+=['Doom.Proofs.'+m+'.'+n for m,group in GROUPS.items() for n in group]
+    for full in names:
+        match=re.match(re.escape(f"'{full}'")+r'\s+(?:depends on axioms: \[([^\[\]]*)\]|does not depend on any axioms)',rest)
+        require(match is not None,'missing audit: '+full)
+        require({a.strip() for a in (match[1] or '').split(',') if a.strip()}<={'propext','Quot.sound','Classical.choice'},'unexpected axioms')
+        rest=rest[match.end():].strip()
+    require(not rest,'unexpected certificate output')
+
+def main():
+    argparse.ArgumentParser(description=__doc__).parse_args()
+    data,mp=pinned_data();spec,profile,raw=extracted();require(mp['exe_sha256']==profile['exe_sha256'],'profile mismatch')
+    out=ROOT/'artifacts/e1m1-aim-retry-collection';out.mkdir(parents=True,exist_ok=True)
+    source=out/'Checked.lean';source.write_text(certificate(data,raw))
+    subprocess.run([str(ROOT/'scripts/lake'),'build','Doom.Proofs.E1M1AimRetryCollection'],cwd=ROOT,check=True)
+    checked=subprocess.run([str(ROOT/'scripts/lake'),'env','lean',str(source)],cwd=ROOT,capture_output=True,text=True,timeout=120)
+    (out/'axioms.log').write_text(checked.stdout+checked.stderr)
+    require(checked.returncode==0,'certificate failed: '+checked.stdout+checked.stderr);audit(checked.stdout)
+    report=dict(wad_sha256=mp['wad_sha256'],exe_sha256=profile['exe_sha256'],units=spec['units'],cells=len(data['cells']),
+      scope='The next trace/epoch context reuses the world, memory layout and payload data. The entire next setup-entry and path-entry input contracts are derived from the original inputs, reached retry request, prepared data and exact prior stamp image with original-word future freshness. Next collection then executes the generated route and agrees with the actual source pathTraverse collection, retaining capacity, images, protected words and exact stamps. The continuous authenticated theorem starts at original P_AimLineAttack entry, completes its result and real miss-to-retry CALL, and reaches the next collection exit. Next-route metadata and capacity, successful divisions, initial data/write guards and freshness remain explicit. Next ordered aiming/catalog correspondence, complete second/third probes and reachable-state invariants remain open. No runtime, decoder, instruction-semantic or binary-range changes; no emulator rerun',
+      emulator_evidence='artifacts/e1m1-aim-completed-return/validation.json')
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
+    print('PASS: next entry invariants and generated collection joined to the real retry; strict inherited axiom audit.')
+if __name__=='__main__':main()

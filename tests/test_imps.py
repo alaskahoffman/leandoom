@@ -30,21 +30,32 @@ class ImpTests(unittest.TestCase):
     def test_generated_original_state_table(self):
         subprocess.run(['python3',str(ROOT/'scripts/generate-imp.py')],check=True,capture_output=True)
 
+    def test_map_order_assigns_spawn_randomness_to_the_correct_actor(self):
+        # After the player draw (8), a static item takes 109. The imp then
+        # receives lastlook=220%4 and duration=1+222%10. Reversing those map
+        # entries gives the imp lastlook=109%4 and duration=1+220%10 instead.
+        item=(96,64,0,2011,7); imp=(160,0,180,3001,7)
+        first=self.state(arena([item,imp]),'0:0')
+        second=self.state(arena([imp,item]),'0:0')
+        self.assertEqual(first['rng'],second['rng'])
+        self.assertEqual(first['actors'][0]['impState'],'442:3:0:0:8:0')
+        self.assertEqual(second['actors'][0]['impState'],'442:1:0:0:8:0')
+
     def test_spawn_countdown_and_original_initial_chase_direction(self):
         geom=arena([(160,0,180,3001,7)])
-        self.assertEqual(self.state(geom,'0:0')['actors'][0]['impState'],'442:10:0:0:8:0')
-        before=self.state(geom,'9:0')['actors'][0]
-        self.assertEqual((before['x'],before['pose']),(160,'TROOA'))
-        after=self.state(geom,'10:0')['actors'][0]
+        self.assertEqual(self.state(geom,'0:0')['actors'][0]['impState'],'442:1:0:0:8:0')
+        before=self.state(geom,'10:0')['actors'][0]
+        self.assertEqual((before['x'],before['pose']),(160,'TROOB'))
+        after=self.state(geom,'11:0')['actors'][0]
         # Original zero-initialized movedir is east even with a westward target.
-        self.assertEqual((after['x'],after['impState']),(168,'444:3:0:1:7:0'))
+        self.assertEqual((after['x'],after['impState']),(168,'444:3:0:5:7:0'))
 
     def test_facing_and_persistent_shot_hearing(self):
         geom=arena([(160,0,0,3001,7)],angle=180)
         asleep=self.state(geom,'120:0')['actors'][0]
         self.assertEqual((asleep['x'],asleep['health']),(160,60))
         self.assertTrue(asleep['mode'].endswith('idle'))
-        heard=self.state(geom,'1:8192,39:0')
+        heard=self.state(geom,'15:8192,39:0')
         self.assertEqual(heard['soundTargets'],[0])
         self.assertEqual(heard['actors'][0]['health'],60) # Fired away from imp.
         self.assertTrue(heard['actors'][0]['mode'].endswith('chase'))
@@ -52,51 +63,51 @@ class ImpTests(unittest.TestCase):
     def test_sound_crosses_open_portal_but_not_closed_portal(self):
         for closed in [False,True]:
             geom=things(sectors(two_rooms(),first=(-16,128),second=(-16,-16 if closed else 128)),[(0,0,180,1,7),(144,0,0,3001,7)])
-            state=self.state(geom,'1:8192,39:0')
+            state=self.state(geom,'15:8192,39:0')
             self.assertEqual(state['soundTargets'],[0,None] if closed else [0,0])
             self.assertEqual(state['actors'][0]['mode'].endswith('idle'),closed)
 
     def test_ambush_requires_sight_even_after_hearing(self):
         # REJECT removes sight without closing the sound portal.
         geom=replace(arena([(160,0,0,3001,15)],angle=180),'REJECT',bytes([255]))
-        asleep=self.state(geom,'1:8192,39:0')
+        asleep=self.state(geom,'15:8192,39:0')
         self.assertEqual(asleep['soundTargets'],[0])
         self.assertTrue(asleep['actors'][0]['mode'].endswith('idle'))
         ordinary=replace(geom,'THINGS',struct.pack('<5h',0,0,180,1,7)+struct.pack('<5h',160,0,0,3001,7))
-        self.assertFalse(self.state(ordinary,'1:8192,39:0')['actors'][0]['mode'].endswith('idle'))
+        self.assertFalse(self.state(ordinary,'15:8192,39:0')['actors'][0]['mode'].endswith('idle'))
 
     def test_melee_damage_waits_for_attack_action(self):
         geom=arena([(48,0,180,3001,7)])
-        before=self.state(geom,'25:0')
-        hit=self.state(geom,'26:0')
+        before=self.state(geom,'26:0')
+        hit=self.state(geom,'27:0')
         self.assertEqual(before['health'],100)
-        self.assertEqual(hit['health'],79)
+        self.assertEqual(hit['health'],94)
         self.assertEqual(hit['projectiles'],[])
-        self.assertTrue(any('melee 0 21' in e for e in hit['impEvents']))
+        self.assertTrue(any('melee 0 6' in e for e in hit['impEvents']))
 
     def test_fireball_has_travel_time_and_can_be_dodged(self):
         geom=arena([(160,0,180,3001,7)])
-        before=self.state(geom,'115:0')
-        spawned=self.state(geom,'116:0')
-        travelling=self.state(geom,'125:0')
-        hit=self.state(geom,'130:0')
+        before=self.state(geom,'86:0')
+        spawned=self.state(geom,'87:0')
+        travelling=self.state(geom,'100:0')
+        hit=self.state(geom,'108:0')
         self.assertEqual(before['projectiles'],[])
         self.assertEqual(spawned['health'],100)
         self.assertFalse(spawned['projectiles'][0]['exploding'])
         self.assertEqual(spawned['projectiles'][0]['z'],16) # floor -16 + muzzle 32.
         self.assertEqual(travelling['health'],100)
         self.assertLess(travelling['projectiles'][0]['x'],spawned['projectiles'][0]['x'])
-        self.assertEqual(hit['health'],79)
+        self.assertEqual(hit['health'],85)
         self.assertTrue(hit['projectiles'][0]['exploding'])
-        dodged=self.state(geom,'116:0,14:8')
+        dodged=self.state(geom,'87:0,21:8')
         self.assertEqual(dodged['health'],100)
         self.assertFalse(dodged['projectiles'][0]['exploding'])
 
     def test_fireball_wall_explosion_and_removal(self):
         geom=arena([(160,0,180,3001,7)])
         # Dodge and let the already-aimed fireball reach the far wall.
-        hit=self.state(geom,'116:0,14:8,30:0')['projectiles'][0]
-        gone=self.state(geom,'116:0,14:8,60:0')['projectiles'][0]
+        hit=self.state(geom,'87:0,21:8,30:0')['projectiles'][0]
+        gone=self.state(geom,'87:0,21:8,60:0')['projectiles'][0]
         self.assertTrue(hit['exploding'])
         self.assertEqual((hit['momx'],hit['momy'],hit['momz']),(0,0,0))
         self.assertTrue(gone['removed'])

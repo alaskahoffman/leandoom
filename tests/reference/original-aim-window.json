@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimWindow": {
+      "code_offset": "0x2b800",
+      "file_offset": "0x6d814",
+      "hex": "a1e8c102003b05e4c102000f8f8c00000031c05d5f5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c1e4"
+        },
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2c1e8"
+        }
+      ]
+    },
+    "aimContinue": {
+      "code_offset": "0x2b89d",
+      "file_offset": "0x6d8b1",
+      "hex": "b8010000005d5f5e5a595bc3",
+      "relocations": []
+    }
+  }
+}

@@ -6,6 +6,21 @@ SPDX-License-Identifier: GPL-2.0-or-later. See COPYING.md.
 -/
 namespace Doom.RenderLighting
 
+/-- Original LIGHTSEGSHIFT and orientation bias, before table lookup. -/
+def level (sector extra : Int) (orientation : Int := 0) : Nat :=
+  (max 0 (min 15 (sector / 16 + extra + orientation))).toNat
+
+/-- R_ExecuteSetViewSize's scalelight at 320-wide high detail. The index is
+projected 16.16 scale >> 12; weapons select the last entry, 47. -/
+def scaleMap (light index : Nat) : Nat :=
+  min 31 ((15 - min 15 light) * 4 - min 47 index / 2)
+
+/-- R_InitLightTables / R_MapPlane: distance is 16.16, quantized by >> 20.
+The two integer divisions retain the original FixedDiv/shift truncations. -/
+def planeMap (light distance : Nat) : Nat :=
+  let index := min 127 (distance / 1048576)
+  min 31 ((15 - min 15 light) * 4 - (160 / (index + 1)) / 2)
+
 /-- A nonzero fixed map overrides ordinary light/distance selection. -/
 def surface (fixed ordinary : Nat) : Nat := if fixed != 0 then fixed else ordinary
 

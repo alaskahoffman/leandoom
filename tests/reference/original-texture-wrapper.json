@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "wrapper": {
+      "code_offset": "0x34750",
+      "file_offset": "0x76764",
+      "hex": "535289c2e897ffffff89c383f8ff750e5268b0340200e8a563feff83c40889d85a5bc3",
+      "relocations": [
+        {
+          "offset": 18,
+          "object": 3,
+          "target": "0x234b0"
+        }
+      ]
+    }
+  },
+  "scope": "R_TextureNumForName wrapper: inner search and I_Error bodies excluded."
+}

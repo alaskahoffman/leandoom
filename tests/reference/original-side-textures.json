@@ -1,0 +1,12 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "textures": {
+      "code_offset": "0x2e47e",
+      "file_offset": "0x70492",
+      "hex": "e8cd6200008904248b04246689420889f8e8bc6200008904248b04246689420a89f0e8ab6200008904248b04246689420c",
+      "relocations": []
+    }
+  },
+  "scope": "P_LoadSideDefs caller-side texture calls, exact return continuations, stack scratch stores and 16-bit field writes. Lookup function bodies and startup reachability are excluded."
+}

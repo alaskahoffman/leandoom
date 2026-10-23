@@ -1,0 +1,44 @@
+{
+  "schema": "leandoom-original-live-v1",
+  "exe_sha256": "b8020523561a5ad9706e009a52d61c578f37faafd85ac471962308406292ce27",
+  "hooks": {
+    "input": "0x20607",
+    "palette": "0x19ca0",
+    "frame": "0x1d4a2"
+  },
+  "data_operands": {
+    "0x20609": "0x2b378",
+    "0x19fcb": "0x2914c",
+    "0x19ccc": "0x74fc0",
+    "0x19cd9": "0x13588"
+  },
+  "evidence": {
+    "demo_read": {
+      "offset": "0x20607",
+      "hex": "8b1578b302008a2280fc807507e827160000eb38428823891578b3020089d08a124088530189c242a378b3020031c08a42ff891578b30200c1e00842668943028a42ff891578b30200884307"
+    },
+    "palette": {
+      "offset": "0x19ca0",
+      "hex": "5351525689c3833d00910200007564b801000000bac8030000e8a2ffffff30c031c9eebec903000031c08b15c04f07008a03c1e208438a84028835010025ff00000089f2c1f802ee31c08b15c04f07008a03c1e208438a84028835010025ff00000089f2c1f80283c102ee81f9000300007cb55e"
+    },
+    "present": {
+      "offset": "0x1d498",
+      "hex": "e863680000e8ce1c000085ff7507e8b5caffffeb58"
+    },
+    "page_flip": {
+      "offset": "0x19fca",
+      "hex": "a14c9102002500ff0000bad403000083c00c66ef8b354c91020081c60040000089354c91020081fe00c00a00750ac7054c91020000000a005e5a595b"
+    },
+    "melt_delays": {
+      "offset": "0x3fb02",
+      "hex": "e87946feff89c2bb10000000c1fa1ff7fba1b05d0700f7da891083fd017e43bb04000000e85546feff89c2be03000000c1fa1ff7fea1b05d070001d84a8b70fc01f2891085d27e08c70000000000eb0b83faf07506c700f1ffffff83c30439cb7cc2"
+    },
+    "melt_width": {
+      "offset": "0x1d4d5",
+      "hex": "b9400100005289c689fb68c8000000b80100000089fae8a0280200"
+    }
+  },
+  "input_capacity": 10000,
+  "frame_bytes": 64000,
+  "description": "Four bytes supplied at original demo read; capture Mode X back page before first flip/wipe, raw input palette before VGA DAC quantization."
+}

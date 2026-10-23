@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "metadata": {
+      "code_offset": "0x2e29a",
+      "file_offset": "0x702ae",
+      "hex": "668b410466894310668b410666894312668b410866894314",
+      "relocations": []
+    },
+    "slope": {
+      "code_offset": "0x2e2ec",
+      "file_offset": "0x70300",
+      "hex": "8b430885c07509c7432a01000000eb2a8b530c85d2750589532aeb1e89c28b430ce86eeefeff85c07e09c7432a02000000eb07c7432a03000000",
+      "relocations": []
+    }
+  },
+  "scope": "Metadata, slope branches and real FixedDiv CALL boundary. Axis-aligned iterations joined end to end; diagonal callee body and full loader loop remain open."
+}

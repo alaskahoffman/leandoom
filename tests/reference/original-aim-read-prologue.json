@@ -1,0 +1,72 @@
+{
+  "units": {
+    "read": {
+      "code_offset": "0x38bf0",
+      "file_offset": "0x7ac04",
+      "size": 187,
+      "sha256": "a5192448050c5169e9f587d850c3f58780fc38d79f602391e5d40a3bceba854f",
+      "hex": "535156575589c789d53b05a04f07007c0e5068fc390200e8041ffeff83c4088d0cbd0000000001f9a1a44f07008d0c8d0000000001c1e88521feff8b590883fbff752f68000200008b359c4f070056e84d7a000083c40889c639d87517a19c4f07005068183a0200e8b31efeff83c408eb0289de89f08b510c31dbe8507c000089f089ea8b5910e8b97c00008b511039d07d1057525068383a0200e8801efeff83c410837908ff750789f0e8627c0000e8fb21feff5d5f5e595bc3",
+      "relocations": [
+        {
+          "offset": 11,
+          "object": 3,
+          "target": "0x74fa0"
+        },
+        {
+          "offset": 19,
+          "object": 3,
+          "target": "0x239fc"
+        },
+        {
+          "offset": 41,
+          "object": 3,
+          "target": "0x74fa4"
+        },
+        {
+          "offset": 74,
+          "object": 3,
+          "target": "0x74f9c"
+        },
+        {
+          "offset": 94,
+          "object": 3,
+          "target": "0x74f9c"
+        },
+        {
+          "offset": 100,
+          "object": 3,
+          "target": "0x23a18"
+        },
+        {
+          "offset": 151,
+          "object": 3,
+          "target": "0x23a38"
+        }
+      ]
+    },
+    "beginRead": {
+      "code_offset": "0x1adb0",
+      "file_offset": "0x5cdc4",
+      "size": 240,
+      "sha256": "18a8f26f62c97316433eb641fc842b660cc91a532dee60d77d5efab5d9c11206",
+      "hex": "535152833d34910200000f84dc000000bac4030000b002eebac5030000b00feebace030000b005eebacf03000029c0ec0c0131dbeea1f8900200bac8f90a0005cc3900008a08880a8a4801884a018a4802884a028a4803884a038a4850884a508a485183c050884a5183c2508a480283c302884a0283c2508a480383c050884ab383fb107cbebaccf90a00a1f890020031db05cc3900008a0a88088a4a018848018a4a028848028a4a038848038a4a508848508a4a5183c25088485183c0508a4a0283c30288480283c0508a4a0383c2508848b383fb107cbebace030000b005eebacf03000029c0ec24feee5a595bc3",
+      "relocations": [
+        {
+          "offset": 5,
+          "object": 3,
+          "target": "0x29134"
+        },
+        {
+          "offset": 54,
+          "object": 3,
+          "target": "0x290f8"
+        },
+        {
+          "offset": 140,
+          "object": 3,
+          "target": "0x290f8"
+        }
+      ]
+    }
+  }
+}

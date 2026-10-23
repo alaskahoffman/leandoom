@@ -1,0 +1,197 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "calcHeightBytes": {
+      "code_offset": "0x33030",
+      "file_offset": "0x75044",
+      "hex": "53515256575589c18b188b5b4889d8f7eb0facd0108b198b5b4c89c689d8f7eb0facd01001c689f289711cc1fa0289511c81fa000010007e07c7411c00001000f681c4000000047509833d90cf02000075308b018b401405000029008941108b018b403c8b69102d0000040039e87d038941108b018b51148b401401d0e9a2000000690580cf02009901000025ff1f00008b1c85845a00008b411c89c2c1fa1f2bc2d1f8f7eb0facd0108b690485ed75568b59188b511401da89511481fa000029007e0ac7411400002900896918817914008014007d158b7918c741140080140085ff7f07c74118010000008b691885ed74148d950040000089511885d27507c74118010000008b198b71148b5b1401f301c38b018959108b403c2d0000040039d87d038941105d5f5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 75,
+          "object": 3,
+          "target": "0x2cf90"
+        },
+        {
+          "offset": 148,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 132,
+          "object": 3,
+          "target": "0x2cf80"
+        }
+      ]
+    },
+    "calcHeightCallerBytes": {
+      "code_offset": "0x333cb",
+      "file_offset": "0x753df",
+      "hex": "e860fcffff",
+      "relocations": []
+    },
+    "playerReactionBytes": {
+      "code_offset": "0x333b1",
+      "file_offset": "0x753c5",
+      "hex": "8b028b707c85f674088d7eff89787ceb0789d0e897fdffff89d0",
+      "instructions": 10,
+      "relocations": []
+    },
+    "playerFunctionBytes": {
+      "code_offset": "0x33160",
+      "file_offset": "0x75174",
+      "hex": "53515256575583ec0489c18d70080fbf5e028b00c1e3100158208b018b58143b58380f9ec025ff0000008a16a390cf020084d2744c85c074488b298b45208b1d84350100c1e8130fbefa8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c8a760184f67456833d90cf020000744d8b298b45202d000000408b1d84350100c1e8130fbefe8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c803e007506807e010074158b01817864746a0100750aba96000000e842dcffff83c4045d5f5e5a595bc3",
+      "instructions": 93,
+      "relocations": [
+        {
+          "offset": 45,
+          "object": 3,
+          "target": "0x2cf90"
+        },
+        {
+          "offset": 64,
+          "object": 3,
+          "target": "0x13584"
+        },
+        {
+          "offset": 114,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 138,
+          "object": 3,
+          "target": "0x2cf90"
+        },
+        {
+          "offset": 157,
+          "object": 3,
+          "target": "0x13584"
+        },
+        {
+          "offset": 207,
+          "object": 3,
+          "target": "0x5a84"
+        },
+        {
+          "offset": 238,
+          "object": 3,
+          "target": "0x16a74"
+        }
+      ]
+    },
+    "setMobjStateBytes": {
+      "code_offset": "0x30ea0",
+      "file_offset": "0x72eb4",
+      "hex": "535689c385d2751389d8c7436400000000e8aa07000031c05e5bc36bd21c81c2285a01008953648b42088943608b028943248b4204894328837a0c00740589d8ff520c8b73608b521085f6750685d274b7ebc8b8010000005e5bc3",
+      "relocations": [
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x15a28"
+        }
+      ]
+    },
+    "sectorDispatchBytes": {
+      "code_offset": "0x333d0",
+      "file_offset": "0x753e4",
+      "hex": "8b028b40348b006683780e00740789d0e83bc7ffff",
+      "relocations": []
+    },
+    "sectorEntryBytes": {
+      "code_offset": "0x2fb20",
+      "file_offset": "0x71b34",
+      "hex": "5351525689c68b008b48348b098b50143b110f8501010000668b510e83ea046683fa0c0f87de00000081e2ffff00002eff2495ecfa0200",
+      "relocations": [
+        {
+          "offset": 51,
+          "object": 1,
+          "target": "0x2faec"
+        }
+      ]
+    },
+    "sectorSecretBytes": {
+      "code_offset": "0x2fbdc",
+      "file_offset": "0x71bf0",
+      "hex": "ff86d400000066c7410e00005e5a595bc3",
+      "relocations": []
+    },
+    "sectorReturnBytes": {
+      "code_offset": "0x2fc39",
+      "file_offset": "0x71c4d",
+      "hex": "5e5a595bc3",
+      "relocations": []
+    },
+    "sectorTableBytes": {
+      "code_offset": "0x2faec",
+      "file_offset": "0x71b00",
+      "hex": "aafb020057fb020027fc020080fb020027fc0200dcfb020027fc0200edfb020027fc020027fc020027fc020027fc0200aafb0200",
+      "relocations": [
+        {
+          "offset": 48,
+          "object": 1,
+          "target": "0x2fbaa"
+        },
+        {
+          "offset": 44,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 40,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 36,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 32,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 28,
+          "object": 1,
+          "target": "0x2fbed"
+        },
+        {
+          "offset": 24,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 20,
+          "object": 1,
+          "target": "0x2fbdc"
+        },
+        {
+          "offset": 16,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2fb80"
+        },
+        {
+          "offset": 8,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 4,
+          "object": 1,
+          "target": "0x2fb57"
+        },
+        {
+          "offset": 0,
+          "object": 1,
+          "target": "0x2fbaa"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "ystep": {
+      "code_offset": "0x2ca10",
+      "file_offset": "0x6ea24",
+      "hex": "7e22ba00000100e8bc4e010029dab90100000089d389c289e8894c241ce84e07ffffeb2b7d19baffffffffe8984e01008954241c89c289e8e83307ffffeb10bb0000010031edb800000001896c241c",
+      "relocations": []
+    },
+    "abs": {
+      "code_offset": "0x418d8",
+      "file_offset": "0x838ec",
+      "hex": "85c07d02f7d8c3",
+      "relocations": []
+    },
+    "second": {
+      "code_offset": "0x2ca5f",
+      "file_offset": "0x6ea73",
+      "hex": "894424248b4c2410c1fe0789d88b5c242431fff7eb0facd0108d2c068b74240c",
+      "relocations": []
+    },
+    "division": {
+      "code_offset": "0x1d180",
+      "file_offset": "0x5f194",
+      "hex": "53515689c189d39931d029d089c689d8c1fe0e9931d029d039c67c1531cb85db0f9cc025ff00000005ffffff7f5e595bc389c8990fa4c210c1e010f7fb5e595bc3",
+      "relocations": []
+    }
+  }
+}

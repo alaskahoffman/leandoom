@@ -19,9 +19,9 @@ class HeightClipTests(unittest.TestCase):
 
     def test_door_height_query_can_collect_without_player_xy_movement(self):
         geom=door_room(start=(49,0,0),extras=[(49,0,0,2007,7)])
-        before=self.state(geom,'1:4096')
+        before=self.state(geom,'0:0')
         self.assertEqual(before['collected'],[])
-        after=self.state(geom,'1:4096,1:0')
+        after=self.state(geom,'1:4096')
         self.assertEqual(after['x'],49)
         self.assertEqual(after['collected'],[1])
         self.assertEqual(after['ammo'][0],60)

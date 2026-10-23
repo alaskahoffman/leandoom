@@ -87,11 +87,11 @@ class AudioTests(unittest.TestCase):
     def test_opl_pcm_matches_nuked(self):self.check_oracle('opl')
 
     def test_pistol_sound_fires_with_shot_not_windup(self):
-        before,_=self.render(arena(),'4:8192')
+        before,_=self.render(arena(),'18:8192')
         self.assertFalse(any(before))
-        fired,trace=self.render(arena(),'5:8192')
-        self.assertEqual(fired[:4*1260*4],before)
-        self.assertTrue(any(fired[4*1260*4:]))
+        fired,trace=self.render(arena(),'19:8192')
+        self.assertEqual(fired[:18*1260*4],before)
+        self.assertTrue(any(fired[18*1260*4:]))
         self.assertEqual(trace['trace'][-1]['sounds'],['pistol'])
 
     def test_audio_pitch_preserves_gameplay_random_stream(self):
@@ -100,7 +100,7 @@ class AudioTests(unittest.TestCase):
         silent=json.loads(state.read_text())
         self.assertEqual(audio['state']['rng'],silent['rng'])
         self.assertEqual(audio['state']['shots'],silent['shots'])
-        self.assertEqual(audio['state']['miscRng'],silent['miscRng']+2)
+        self.assertEqual(audio['state']['miscRng'],silent['miscRng'])
 
     def test_pcm_clock_and_partition_are_exact(self):
         a,_=self.render(arena(),'30:8192')
@@ -121,12 +121,24 @@ class AudioTests(unittest.TestCase):
         self.assertIn('wpnup',trace['trace'][0]['sounds'])
 
     def test_imp_attack_pain_and_barrel_death_audio(self):
-        _,trace=self.render(arena([(48,0,180,3001,7)]),'30:0')
+        _,trace=self.render(arena([(48,0,180,3001,7)]),'31:0')
         sounds=[s for t in trace['trace'] for s in t['sounds']]
         self.assertIn('bgsit1',sounds);self.assertIn('claw',sounds);self.assertIn('plpain',sounds)
         _,trace=self.render(arena([(96,0,0,2035,7)]),'50:8192')
         sounds=[s for t in trace['trace'] for s in t['sounds']]
         self.assertEqual(sounds.count('barexp'),1)
+
+    def test_player_pain_sound_waits_for_body_state_and_attack_can_interrupt(self):
+        geom=arena([(48,0,180,3001,7)])
+        _,trace=self.render(geom,'31:0')
+        claw=next(i for i,t in enumerate(trace['trace']) if 'claw' in t['sounds'])
+        pain=next(i for i,t in enumerate(trace['trace']) if 'plpain' in t['sounds'])
+        self.assertEqual(pain-claw,4) # S_PLAY_PAIN has four tics before A_Pain.
+        self.assertNotIn('plpain',trace['trace'][claw]['sounds'])
+        # Starting an attack enters S_PLAY_ATK1, replacing the pending pain state.
+        _,interrupted=self.render(geom,'30:0,10:8192')
+        self.assertFalse(any('plpain' in t['sounds'] for t in interrupted['trace']))
+        self.assertTrue(any('pistol' in t['sounds'] for t in interrupted['trace']))
 
     def test_fireball_launch_and_explosion_audio(self):
         _,trace=self.render(arena([(160,0,180,3001,7)]),'145:0')
@@ -134,14 +146,14 @@ class AudioTests(unittest.TestCase):
         self.assertIn('firsht',sounds);self.assertIn('firxpl',sounds)
 
     def test_sound_lifetime_ends_and_restart_clears_channels(self):
-        pcm,_=self.render(arena(),'5:8192,10:0')
+        pcm,_=self.render(arena(),'19:8192,10:0')
         self.assertFalse(any(pcm[-5*1260*4:]))
-        pcm,_=self.render(arena(),'5:8192,1:1024,10:0')
-        self.assertFalse(any(pcm[5*1260*4:]))
+        pcm,_=self.render(arena(),'19:8192,1:1024,10:0')
+        self.assertFalse(any(pcm[19*1260*4:]))
 
     def test_projectile_removal_stops_its_sound(self):
         assets=replace(audio_lumps(True),'DSFIRXPL',dmx([64]*22050))
-        pcm,trace=self.render(arena([(160,0,180,3001,7)]),'170:0',assets)
+        pcm,trace=self.render(arena([(160,0,180,3001,7)]),'135:0',assets)
         self.assertTrue(any(pcm))
         self.assertTrue(trace['state']['projectiles'][0]['removed'])
         self.assertFalse(any(pcm[-10*1260*4:]))

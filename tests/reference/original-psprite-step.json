@@ -1,0 +1,11 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "psprite": {
+      "code_offset": "0x2dc60",
+      "file_offset": "0x6fc74",
+      "hex": "535152565789c78d88f400000031f68b1985db74208b510483faff74188d5aff89590485db750e8b1989f889f28b5b10e8abf3ffff",
+      "relocations": []
+    }
+  }
+}

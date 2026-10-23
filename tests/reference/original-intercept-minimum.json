@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "interceptMinimum": {
+      "code_offset": "0x2c841",
+      "file_offset": "0x6e855",
+      "hex": "b820ba0200baffffff7f39c1760f3b107e0489c38b1083c00c39c872f1",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2ba20"
+        }
+      ]
+    }
+  }
+}

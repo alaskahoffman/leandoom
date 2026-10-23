@@ -1,0 +1,46 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "allocation": {
+      "code_offset": "0x39731",
+      "file_offset": "0x7b745",
+      "hex": "85ff740a8d4318897b048907eb1983fd647c0d68543b0200e8c213feff83c404c74304020000008b15e04f07008b4310896b0889421c8d4318c7430c114a1d005d5f5e59c3",
+      "relocations": [
+        {
+          "offset": 20,
+          "object": 3,
+          "target": "0x23b54"
+        },
+        {
+          "offset": 41,
+          "object": 3,
+          "target": "0x74fe0"
+        }
+      ]
+    },
+    "entry": {
+      "code_offset": "0x2e63e",
+      "file_offset": "0x70652",
+      "hex": "8b2d48c1020089c631c08b154cc102008944241085d20f8e3701000089e0e85f5bffff",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2c148"
+        },
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x2c14c"
+        }
+      ]
+    },
+    "clear": {
+      "code_offset": "0x241c0",
+      "file_offset": "0x661d4",
+      "hex": "52c7400c00000080c74008ffffff7f8b500c89108b50088950045ac3",
+      "relocations": []
+    }
+  },
+  "scope": "Z_Malloc selected-block tail with null user and tag 50, saved return to P_GroupLines, actual caller setup and M_ClearBox call/return. Starts after heap search and block splitting. Excludes allocation search/split/prologue, initial heap construction and outer grouping loop."
+}

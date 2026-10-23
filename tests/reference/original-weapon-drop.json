@@ -1,0 +1,86 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "drop": {
+      "code_offset": "0x2d2c0",
+      "file_offset": "0x6f2d4",
+      "hex": "535289c28b58708d049d0000000029d88b1cc5982d010089d031d2e860fdffff5a5bc3",
+      "relocations": [
+        {
+          "offset": 19,
+          "object": 3,
+          "target": "0x12d98"
+        }
+      ]
+    },
+    "setter": {
+      "code_offset": "0x2d040",
+      "file_offset": "0x6f054",
+      "hex": "515689c689d8c1e2048d9ef400000001d385c07509c703000000005e59c36bc01cb9285a010001c1890b8b41088943048b511485d2741189d0c1e0108943088b4118c1e01089430c83790c00740c89f089daff510c833b0074128b038b53048b401085d2750685c074abebb25e59c3",
+      "relocations": [
+        {
+          "offset": 34,
+          "object": 3,
+          "target": "0x15a28"
+        }
+      ]
+    },
+    "lower": {
+      "code_offset": "0x2d490",
+      "file_offset": "0x6f4a4",
+      "hex": "536683420e06817a0c000080007c2b837804017509c7420c000080005bc383782000750b31d231dbe883fbffff5bc38b5074895070e856fcffff5bc3",
+      "relocations": []
+    }
+  },
+  "tables": {
+    "info0": {
+      "offset": "0x12d98",
+      "hex": "03000000",
+      "relocations": []
+    },
+    "state0": {
+      "offset": "0x15a7c",
+      "hex": "02000000000000000100000090d40200030000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    },
+    "info1": {
+      "offset": "0x12db0",
+      "hex": "0b000000",
+      "relocations": []
+    },
+    "state1": {
+      "offset": "0x15b5c",
+      "hex": "03000000000000000100000090d402000b0000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    },
+    "info2": {
+      "offset": "0x12dc8",
+      "hex": "13000000",
+      "relocations": []
+    },
+    "state2": {
+      "offset": "0x15c3c",
+      "hex": "01000000000000000100000090d40200130000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    }
+  },
+  "scope": "Dead-player P_DropWeapon through P_SetPsprite, indirect A_Lower and all returns to P_KillMobj; fists/pistol/shotgun, arbitrary signed 16.16 height. Flat machine model and encoded initial memory contracts."
+}

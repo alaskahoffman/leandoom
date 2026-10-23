@@ -1,14 +1,16 @@
-/- Original imp branches of p_enemy.c, Chocolate Doom 3.1.1.
+/- Original imp/zombieman branches of p_enemy.c, Chocolate Doom 3.1.1.
 Derived from id Software / Simon Howard. SPDX-License-Identifier: GPL-2.0-or-later. -/
 import Doom.ImpData
 import Doom.Slide
 import Doom.Angles
+import Doom.ActorClock
 
 namespace Doom.Imp
 open Collision ImpData
 
 structure State where
   id : Nat
+  kind : Nat := 3001
   frame : Nat := TROO_STND
   tics : Int32 := 10
   angle : Angle := ⟨0⟩
@@ -23,10 +25,16 @@ structure State where
   justAttacked : Bool := false
   deriving Inhabited
 
+def State.spawnFrame (a : State) : Nat := if a.kind == 3004 then POSS_STND else TROO_STND
+def State.chaseFrame (a : State) : Nat := if a.kind == 3004 then POSS_RUN1 else TROO_RUN1
+def State.attackFrame (a : State) : Nat := if a.kind == 3004 then POSS_ATK1 else TROO_ATK1
+def State.painFrame (a : State) : Nat := if a.kind == 3004 then POSS_PAIN else TROO_PAIN
+
 inductive Event where
   | sound (name : String)
   | melee (target : Nat) (damage : Nat)
   | missile (target : Nat)
+  | hitscan (target : Nat)
   deriving Repr
 
 structure Hooks (α : Type) where
@@ -78,7 +86,8 @@ def missileRange (h : Hooks α) : M α Bool := do
     change fun a => { a with justHit := false }
     return true
   if (← get).actor.reaction != 0 then return false
-  let dist := min (200 : Int32) (((← distance h id) - Fixed.ofInt 64).raw >>> 16)
+  let offset := if (← get).actor.kind == 3004 then 192 else 64
+  let dist := min (200 : Int32) (((← distance h id) - Fixed.ofInt offset).raw >>> 16)
   return Int32.ofNat (← roll) ≥ dist
 
 private def walk (h : Hooks α) : M α Bool := do
@@ -172,6 +181,10 @@ def enter (h : Hooks α) : Nat → Nat → M α Unit
     | "NULL" => pure ()
     | "A_Pain" => emit (.sound "popain")
     | "A_FaceTarget" => face h
+    | "A_PosAttack" =>
+      let some target := (← get).actor.target | return
+      face h
+      emit (.hitscan target)
     | "A_TroopAttack" =>
       let some target := (← get).actor.target | return
       face h
@@ -189,8 +202,10 @@ def enter (h : Hooks α) : Nat → Nat → M α Unit
           found ← if w.actor.ambush then visible h target else pure true
       if !found then found ← lookPlayer h false
       if found then
-        emit (.sound s!"bgsit{(← roll)%2+1}")
-        enter h fuel TROO_RUN1
+        let sound ← if (← get).actor.kind == 3004 then do pure s!"posit{(← roll)%3+1}"
+          else do pure s!"bgsit{(← roll)%2+1}"
+        emit (.sound sound)
+        enter h fuel (← get).actor.chaseFrame
     | "A_Chase" =>
       let a := (← get).actor
       let targetDead ← match a.target with
@@ -208,29 +223,31 @@ def enter (h : Hooks α) : Nat → Nat → M α Unit
         | none => pure false
         | some id => do pure (← object h id).shootable
       if !valid then
-        if !(← lookPlayer h true) then enter h fuel TROO_STND
+        if !(← lookPlayer h true) then enter h fuel (← get).actor.spawnFrame
         return
       if a.justAttacked then
         change fun a => { a with justAttacked := false }
         newChaseDir h
         return
-      if (← meleeRange h) then
-        enter h fuel TROO_ATK1
+      if (← get).actor.kind != 3004 && (← meleeRange h) then
+        enter h fuel (← get).actor.attackFrame
         return
       if (← get).actor.movecount == 0 then
         if (← missileRange h) then
-          enter h fuel TROO_ATK1
+          enter h fuel (← get).actor.attackFrame
           change fun a => { a with justAttacked := true }
           return
       change fun a => { a with movecount := a.movecount-1 }
       if (← get).actor.movecount < 0 then newChaseDir h
       else if !(← walk h) then newChaseDir h
-      if (← roll) < 3 then emit (.sound "bgact")
+      if (← roll) < 3 then emit (.sound (if (← get).actor.kind == 3004 then "posact" else "bgact"))
     | other => throw s!"imp: unsupported action {other}"
 
 def tick (h : Hooks α) : M α Unit := do
-  change fun a => { a with tics := a.tics-1 }
-  if (← get).actor.tics == 0 then
+  match ActorClock.step (← get).actor.tics with
+  | .hold n => change fun a => { a with tics := n }
+  | .enterNext =>
+    change fun a => { a with tics := 0 }
     let some frame := frames.find? (·.id == (← get).actor.frame) | throw "imp: missing state"
     enter h 64 frame.next
 

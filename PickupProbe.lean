@@ -44,6 +44,11 @@ private def step (s : State) (p : Profile) (command : List String)
   let mut sound := 0
   let mut granted := false
   match command with
+  | ["lighttables", sector, extra, orientation, scale, distance] =>
+    let light := RenderLighting.level (← integer sector).toInt (← integer extra).toInt (← integer orientation).toInt
+    let some scale := scale.toNat? | throw "invalid light scale"
+    let some distance := distance.toNat? | throw "invalid light distance"
+    return (s,p,s!"{light} {RenderLighting.scaleMap light scale} {RenderLighting.planeMap light distance}")
   | ["light", kind, fixed, normal, fullbright, shadow, invisibility] =>
     let kind := (← bounded kind 6).val
     let fixed := (← bounded fixed 33).val

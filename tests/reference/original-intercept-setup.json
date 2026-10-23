@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "interceptSetup": {
+      "code_offset": "0x2c810",
+      "file_offset": "0x6e824",
+      "hex": "5351565783ec048b0d28c0020089042489d789ca81ea20ba0200bb0c00000089d0c1fa1ff7fb89c631db89f04e85c07446",
+      "relocations": [
+        {
+          "offset": 22,
+          "object": 3,
+          "target": "0x2ba20"
+        },
+        {
+          "offset": 9,
+          "object": 3,
+          "target": "0x2c028"
+        }
+      ]
+    },
+    "interceptHandoff": {
+      "code_offset": "0x2cafd",
+      "file_offset": "0x6eb11",
+      "hex": "8b442444ba00000100e805fdffff",
+      "relocations": []
+    }
+  }
+}

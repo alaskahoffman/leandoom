@@ -1,0 +1,37 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "slope": {
+      "code_offset": "0x2d7c0",
+      "file_offset": "0x6f7d4",
+      "hex": "5351525689c68b4820bb0000000489cae8abe3ffff8b15f8b90200a3c0c0020085d2753abb0000000481c10000000489f089cae888e3ffff8b1df8b90200a3c0c0020085db7517bb000000048d91000000f889f0e867e3ffffa3c0c002005e5a595bc3",
+      "relocations": [
+        {
+          "offset": 90,
+          "object": 3,
+          "target": "0x2c0c0"
+        },
+        {
+          "offset": 63,
+          "object": 3,
+          "target": "0x2c0c0"
+        },
+        {
+          "offset": 58,
+          "object": 3,
+          "target": "0x2b9f8"
+        },
+        {
+          "offset": 28,
+          "object": 3,
+          "target": "0x2c0c0"
+        },
+        {
+          "offset": 23,
+          "object": 3,
+          "target": "0x2b9f8"
+        }
+      ]
+    }
+  }
+}

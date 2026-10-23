@@ -1,0 +1,32 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "aimFloor": {
+      "code_offset": "0x2b7a6",
+      "file_offset": "0x6d7ba",
+      "hex": "8b713289c38b412e8b3e3b38741da130c002002b05a8b90200e8bc19ffff3b05e4c102007e05a3e4c10200",
+      "relocations": [
+        {
+          "offset": 39,
+          "object": 3,
+          "target": "0x2c1e4"
+        },
+        {
+          "offset": 32,
+          "object": 3,
+          "target": "0x2c1e4"
+        },
+        {
+          "offset": 21,
+          "object": 3,
+          "target": "0x2b9a8"
+        },
+        {
+          "offset": 15,
+          "object": 3,
+          "target": "0x2c030"
+        }
+      ]
+    }
+  }
+}

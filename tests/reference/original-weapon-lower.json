@@ -1,0 +1,12 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "lower": {
+      "code_offset": "0x2d490",
+      "file_offset": "0x6f4a4",
+      "hex": "536683420e06817a0c000080007c2b837804017509c7420c000080005bc383782000750b31d231dbe883fbffff5bc38b5074895070e856fcffff5bc3",
+      "relocations": []
+    }
+  },
+  "scope": "A_Lower dead-player action, including its stack save and RET to the psprite setter. Arbitrary signed 16.16 input height. Surrounding P_DropWeapon/P_SetPsprite composition is separate."
+}

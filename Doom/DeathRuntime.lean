@@ -2,7 +2,8 @@ import Doom.Simulation
 
 namespace Doom
 
-private def Simulation.deathWorld (s : Simulation) : Death.World := {
+/-- Death adapter state for the single-player runtime; exposed for correspondence proofs. -/
+def Simulation.deathWorld (s : Simulation) : Death.World := {
   players := s.deathStats, rng := s.rng, commercial := s.map.name.startsWith "MAP" }
 
 private def Simulation.deathResult (s : Simulation) (id : Nat) (body : Death.Body)
@@ -10,6 +11,7 @@ private def Simulation.deathResult (s : Simulation) (id : Nat) (body : Death.Bod
   let mut s := { s with
     rng := world.rng, deathStats := world.players
     kills := world.players[0].kills.toInt.toNat }
+  let firstDrop := s.map.things.size
   for event in world.events do
     s := { s with deathEvents := s.deathEvents.push (id,event) }
     if let .sound name global := event then
@@ -20,11 +22,25 @@ private def Simulation.deathResult (s : Simulation) (id : Nat) (body : Death.Bod
       let (_,rng) := s.rng.nextPlay
       let target := s.map.things[id-1]!
       let dropped := s.map.things.size
+      s := s.dosSpawn s!"thing:{dropped}" 154
       s := { s with
         rng, dropped := s.dropped.push dropped
         map := { s.map with things := s.map.things.push { target with kind := editor, angle := 0 } } }
   let mut scene ← s.player.syncScene s.map
   let some old := scene.things[id]? | throw "death: missing runtime actor"
+  -- P_KillMobj passes the victim's exact fixed-point XY to P_SpawnMobj,
+  -- with ONFLOORZ. The integer THINGS proxy cannot represent that position.
+  for index in [firstDrop:s.map.things.size] do
+    let dropId := index+1
+    let dropped := scene.things[dropId]!
+    let sector ← s.map.sectorAt old.x old.y
+    let heights := scene.sectors[sector]!
+    scene ← scene.unlinkThing dropId
+    scene := { scene with things := scene.things.set! dropId { dropped with
+      x := old.x, y := old.y, z := heights.floor,
+      floor := heights.floor, ceiling := heights.ceiling,
+      pickup := dropped.pickup.map (fun item => { item with dropped := true }) } }
+    scene ← scene.linkThing dropId s.map.sectorAt
   let thing := { old with
     health := body.health, height := body.height
     solid := body.flags &&& 2 != 0, shootable := body.flags &&& 4 != 0,

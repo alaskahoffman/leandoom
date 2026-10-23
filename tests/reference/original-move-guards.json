@@ -1,0 +1,25 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "forwardGuardBytes": {
+      "code_offset": "0x3317a",
+      "file_offset": "0x7518e",
+      "hex": "8b018b58143b58380f9ec025ff0000008a16a390cf020084d2744c85c07448",
+      "exits": [
+        31,
+        103
+      ],
+      "fuel": 11
+    },
+    "sideGuardBytes": {
+      "code_offset": "0x331e1",
+      "file_offset": "0x751f5",
+      "hex": "8a760184f67456833d90cf020000744d",
+      "exits": [
+        16,
+        93
+      ],
+      "fuel": 5
+    }
+  }
+}

@@ -5,16 +5,20 @@ import Doom.SectorLights
 import Doom.VerticalDoor
 import Doom.SectorChange
 import Doom.Use
+import Doom.UseButton
 import Doom.Scrolling
 import Doom.LevelSpecials
 import Doom.Hitscan
 import Doom.Projectile
 import Doom.Weapon
+import Doom.MapSpawn
+import Doom.Impact
 
 namespace Doom
 
 structure Door where
   sector : Nat
+  thinkerSerial : Nat := 0
   state : VerticalDoor.State := {}
   deriving Inhabited
 
@@ -26,13 +30,19 @@ structure Button where
   deriving Inhabited
 
 structure Simulation where
+  /-- Guest memory is present only in the pinned DOS comparison profile. -/
+  dosHeap : Option DosHeap.Heap := none
+  dosDeferred : Array (Nat × String) := #[]
   map : Map
   original : Map
   audio : Option Audio.Sfx.State := none
   audioEvents : Array Audio.Sfx.Event := #[]
   combatEnabled : Bool := false
   actors : Array Actor := #[]
+  /-- Spawn-time metadata in THINGS order, retained for actor adapters. -/
+  spawnStates : Array (Option MapSpawn.State) := #[]
   projectiles : Array Projectile.Body := #[]
+  impacts : Array Impact.Body := #[]
   projectileEvents : Array (Nat × Projectile.Event) := #[]
   impEvents : Array (Nat × Imp.Event) := #[]
   soundTargets : Array (Option Nat) := #[]
@@ -60,6 +70,8 @@ structure Simulation where
   player : Player
   physicsError : Option String := none
   inventory : Inventory := {}
+  /-- Allocation order shared by dynamic doors and missiles. -/
+  nextDynamicSerial : Nat := 1
   doors : Array Door := #[]
   doorSounds : Array (Nat × VerticalDoor.Sound) := #[]
   buttons : Array Button := #[]
@@ -77,30 +89,55 @@ structure Simulation where
   collected : Array Nat := #[]
   message : String := "Space: use doors and switches"
   messageTicks : Nat := 175
+  hudMessage : String := ""
+  hudMessageTicks : Nat := 0
+
+def Simulation.dosAction (s : Simulation) (action : DosHeap.Action Unit) : Simulation :=
+  match s.dosHeap with
+  | none => s
+  | some heap => match action.run heap with
+    | .ok (_,heap) => { s with dosHeap := some heap }
+    | .error error => { s with physicsError := some error }
+
+def Simulation.dosSpawn (s : Simulation) (key : String) (size : Nat) (tag : Int32 := 50) : Simulation :=
+  s.dosAction do
+    let address ← DosHeap.allocate size tag
+    DosHeap.forget address size
+    if (← get).objects.contains key then throw s!"DOS duplicate object {key}"
+    modify fun h => { h with objects := h.objects.insert key address }
+
+def Simulation.dosRemove (s : Simulation) (key : String) : Simulation :=
+  s.dosAction do
+    if (← get).objects.contains key then DosHeap.remove key
+
+/-- P_RemoveThinker marks a node; P_RunThinkers frees it on its next visit. -/
+def Simulation.dosDefer (s : Simulation) (serial : Nat) (key : String) : Simulation :=
+  if s.dosHeap.isNone then s else { s with dosDeferred := s.dosDeferred.push (serial,key) }
 
 def Simulation.spawn (map : Map) (combat : Bool := false) (switchEpisode : Nat := 1) : Except String Simulation := do
   let mut actors : Array Actor := #[]
   let mut rng : DoomRandom := {}
-  if combat then
-    for index in [:map.things.size] do
-      let thing := map.things[index]!
-      if !thing.active then continue
-      if let some spec := enemySpec thing.kind then
-        let mut imp : Option Imp.State := none
-        if thing.kind == 3001 then
-          -- P_SpawnMobj lastlook, then P_SpawnMapThing initial state duration.
-          let (look,next) := rng.nextPlay
-          let (duration,next) := next.nextPlay
-          rng := next
-          let degrees := if thing.angle >= 32768 then Int.ofNat thing.angle - 65536 else Int.ofNat thing.angle
-          imp := some {
-            id := index+1, lastlook := look%4, tics := Int32.ofNat (1+duration%10),
-            angle := ⟨(Int32.ofInt (degrees.tdiv 45)).toUInt32 * 0x20000000⟩, ambush := thing.flags &&& 8 != 0 }
-        actors := actors.push { thing := index, kind := thing.kind, health := spec.health, imp }
+  let mut spawnStates := #[]
+  for index in [:map.things.size] do
+    let thing := map.things[index]!
+    let (spawn,next) ← MapSpawn.thing thing rng
+    rng := next
+    spawnStates := spawnStates.push spawn
+    if !combat then continue
+    let some initial := spawn | continue
+    if let some spec := enemySpec thing.kind then
+      let mut imp : Option Imp.State := none
+      if thing.kind == 3001 || thing.kind == 3004 then
+        let degrees := if thing.angle >= 32768 then Int.ofNat thing.angle - 65536 else Int.ofNat thing.angle
+        imp := some {
+          id := index+1, kind := thing.kind, frame := initial.frame, lastlook := initial.lastlook, tics := initial.tics,
+          angle := ⟨(Int32.ofInt (degrees.tdiv 45)).toUInt32 * 0x20000000⟩, ambush := thing.flags &&& 8 != 0 }
+      actors := actors.push { thing := index, kind := thing.kind, health := spec.health, imp }
   let original := map
   let (map, lights, lightingRng) := SectorLights.spawnMap map rng
   return {
-    map, original, combatEnabled := combat, actors, lights, rng := lightingRng, switchEpisode,
+    map, original, combatEnabled := combat, actors, spawnStates, lights, rng := lightingRng, switchEpisode,
+    weapon := (Weapon.setup {}).state,
     soundTargets := Array.replicate map.sectors.size none
     totalSecrets := LevelSpecials.totalSecrets (original.sectors.map (·.special))
     scrollers := ← Scrolling.spawn (map.lines.map (·.special)), player := ← Player.spawn map }
@@ -140,14 +177,20 @@ def Simulation.soundPosition (s : Simulation) (origin : Audio.Sfx.Origin) : Opti
 def Simulation.soundListener (s : Simulation) : Audio.Sfx.Listener :=
   ⟨⟨s.player.body.x,s.player.body.y⟩,s.player.body.angle⟩
 
-/-- Audio is enabled by the viewer/offline audio runner. Start effects at their
-emission site so M_Random pitch draws precede later status-face draws. -/
+/-- Start logical sound effects at their emission site even without PCM output,
+so audible M_Random pitch draws precede later status-face draws. -/
 def Simulation.soundAt (s : Simulation) (name : String) (origin : Option Audio.Sfx.Origin)
     (position : Audio.Sfx.Position) : Simulation :=
   let event : Audio.Sfx.Event := ⟨name,origin,position⟩
   let s := { s with audioEvents := s.audioEvents.push event }
   match s.audio with
-  | none => s
+  | none =>
+    let silent : Audio.Sfx.State := { bank := #[], map8 := s.map.name.endsWith "8" }
+    match silent.prepare s.soundListener event s.rng with
+    | .ok (some (_,_,rng)) => ({ s with rng }).dosAction do
+      let _ ← DosHeap.named ("DP" ++ name.toUpper) 3
+    | .ok none => s
+    | .error e => { s with physicsError := some e }
   | some audio =>
     match audio.start s.soundListener event s.rng with
     | .ok (audio,rng) => { s with audio := some audio, rng }
@@ -274,9 +317,12 @@ private def Simulation.activate (s : Simulation) (index : Nat) : Simulation := I
     let state : VerticalDoor.State := {
       kind, top := Fixed.ofInt top, speed := Fixed.ofInt speed,
       direction := if closeOnly then -1 else 1 }
-    let door : Door := { sector, state }
-    s := { s with doors := s.doors.push door }
-    s := s.sound (if closeOnly then (if speed == 8 then "bdcls" else "dorcls") else (if speed == 8 then "bdopn" else "doropn")) (.sector sector)
+    let door : Door := { sector, state, thinkerSerial := s.nextDynamicSerial }
+    if manual then
+      s := s.sound (if closeOnly then (if speed == 8 then "bdcls" else "dorcls") else (if speed == 8 then "bdopn" else "doropn")) (.sector sector)
+    s := s.dosSpawn s!"door:{sector}" 40 51
+    s := { s with doors := s.doors.push door, nextDynamicSerial := s.nextDynamicSerial+1 }
+    if !manual then s := s.sound (if closeOnly then (if speed == 8 then "bdcls" else "dorcls") else (if speed == 8 then "bdopn" else "doropn")) (.sector sector)
     changed := true
   if changed then
     if !manual then s := s.flipSwitch index repeatable
@@ -328,6 +374,7 @@ private def Simulation.pickups (s : Simulation) : Simulation := Id.run do
     if let some sound := event.sound then
       s := s.sound (match sound with | .item => "itemup" | .weapon => "wpnup" | .power => "getpow")
     s := s.say (Pickup.messageText event.message)
+    s := { s with hudMessage := Pickup.messageText event.message, hudMessageTicks := 140 }
   return s
 
 /-- Non-crushing sector changes use original block bounds, traversal and disposal.
@@ -360,6 +407,7 @@ private def Simulation.clipSectorActors (s : Simulation) (sector : Nat) (heights
   scene := changed.scene
   let mut map := map
   let mut gibbed := s.gibbed
+  let mut actors := s.actors
   let mut crushedDrops := s.crushedDrops
   for event in changed.events do
     match event with
@@ -367,6 +415,14 @@ private def Simulation.clipSectorActors (s : Simulation) (sector : Nat) (heights
       if id != collector.actor then
         let index := id-1
         if !gibbed.contains index then gibbed := gibbed.push index
+        -- PIT_ChangeSector also enters S_GIBS. Keep the actual corpse state
+        -- synchronized with its zero-sized collision body and render proxy.
+        if let some slot := actors.findIdx? (·.thing == index) then
+          let actor := actors[slot]!
+          if let some body := actor.death then
+            let (body,_) ← Death.setState Death.frames body {} 895
+            let body := { body with height := ⟨0⟩, flags := body.flags &&& ~~~(2 : UInt32) }
+            actors := actors.set! slot { actor with death := some body }
         map := { map with things := map.things.set! index { map.things[index]! with kind := 24 } }
     | .remove id =>
       let index := id-1
@@ -378,16 +434,19 @@ private def Simulation.clipSectorActors (s : Simulation) (sector : Nat) (heights
   let player := { s.player with
     scene := some scene, mapActors := map.things, inventory,
     body, feet := body.z.toFloat }
-  return (changed.blocked,{ s with map, player, inventory, gibbed, crushedDrops })
+  return (changed.blocked,{ s with map, player, inventory, actors, gibbed, crushedDrops })
 
 /-- Original plane/door kernels with effectful height clipping. Tentative and
 rollback queries retain pickup/disposal and actor-height effects. The surrounding
-doors-before-player scheduling and combat state remain prototype adapters. -/
-private def Simulation.moveDoors (s : Simulation) : Simulation := Id.run do
+general thinker interleaving and combat state remain partial ports. -/
+def Simulation.moveDoors (s : Simulation) (onlySector : Option Nat := none) : Simulation := Id.run do
   let player := { s.player with scene := s.player.scene.map (fun scene => { scene with pickupEvents := #[] }) }
-  let mut s := { s with doorSounds := #[], player }
+  let mut s := { s with doorSounds := if onlySector.isNone then #[] else s.doorSounds, player }
   let mut doors := #[]
   for door in s.doors do
+    if onlySector.any (· != door.sector) then
+      doors := doors.push door
+      continue
     let sec := s.map.sectors[door.sector]!
     let heights : Plane.Heights := ⟨Fixed.ofInt sec.floor, Fixed.ofInt sec.ceiling⟩
     let result := door.state.tick heights (.ok s : Except String Simulation) (fun heights _ state =>
@@ -403,6 +462,7 @@ private def Simulation.moveDoors (s : Simulation) : Simulation := Id.run do
       s := { s with doorSounds := s.doorSounds.push (door.sector,sound) }
       s := s.sound (match sound with | .close => "dorcls" | .open => "doropn" | .blazeClose => "bdcls") (.sector door.sector)
     if !result.removed then doors := doors.push { door with state := result.door }
+    else s := s.dosDefer door.thinkerSerial s!"door:{door.sector}"
   return ({ s with doors }).pickups
 
 /-- E1M1 floor/platform thinkers run after player/actor movement. A thinker
@@ -428,42 +488,102 @@ def Simulation.moveFloors (s : Simulation) : Simulation := Id.run do
     for event in result.events do
       if let .sound sound := event then s := { s with moverSounds := s.moverSounds.push (mover.sector,sound) }
     if !result.removed then movers := movers.push result.thinker
+    else s := s.dosDefer 0 s!"mover:{mover.sector}"
   return ({ s with movers }).pickups
 
 /-- Original secret check precedes XY/Z actor movement. P_MovePlayer/CalcHeight
 alter momentum/view but not position, so the pre-movement body is the correct
 input. Door/other thinker interleaving is still the surrounding adapter. -/
-private def Simulation.discoverSecret (s : Simulation) : Except String Simulation := do
+def Simulation.discoverSecret (s : Simulation) : Except String Simulation := do
   let index ← s.map.sectorAt s.player.body.x s.player.body.y
   let sector := s.map.sectors[index]!
   let (special,secrets) := LevelSpecials.secret sector.special s.player.body.z (Fixed.ofInt sector.floor) s.secrets
   return { s with secrets, map := { s.map with sectors := s.map.sectors.set! index { sector with special } } }
 
+/-- The ordinary floor request consumed by combat after player preparation.
+Keep the decision separate from applying damage: the latter may consume more RNG. -/
+def Simulation.floorDamageRequest (s : Simulation) : Except String (Nat × DoomRandom) := do
+  let index ← s.map.sectorAt s.player.body.x s.player.body.y
+  let sector := s.map.sectors[index]!
+  return LevelSpecials.floorDamage sector.special s.player.body.z
+    (Fixed.ofInt sector.floor) (s.inventory.suit > 0) (s.ticks-1) s.rng
+
+/-- Install the decision's RNG before invoking damage, including no-damage
+random draws. Lookup failure retains the incoming state and records its error. -/
+def Simulation.applyFloorEffect (s : Simulation) (damage : Simulation → Nat → Simulation) : Simulation :=
+  match s.floorDamageRequest with
+  | .error error => { s with physicsError := some error }
+  | .ok (amount,rng) =>
+    let next := { s with rng }
+    if amount == 0 then next else damage next amount
+
+/-- Live PlayerThink preparation through secret-sector handling. Errors retain
+exactly the state reached before the failed phase, including a prepared player
+when sector lookup fails. Later sector effects and player actions follow this. -/
+def Simulation.prepareSectorTick (s : Simulation) (keys : UInt32)
+    (command : Option Ticcmd := none) : Except Simulation (Simulation × Ticcmd) :=
+  let player := { s.player with inventory := s.inventory }
+  match player.prepareTick s.map keys command with
+  | .error error => .error { s with physicsError := some error }
+  | .ok (player, cmd) =>
+    let prepared := { s with player }
+    match prepared.discoverSecret with
+    | .error error => .error { prepared with physicsError := some error }
+    | .ok next => .ok (next, cmd)
+
+/-- Weapon selection belongs to the live-player branch before use and psprites.
+A lethal floor hit earlier in this tic does not skip this phase. -/
+def Simulation.selectWeapon (s : Simulation) (keys : UInt32) : Simulation :=
+  let choice := if keyDown keys 16384 then some 0 else if keyDown keys 32768 then some 1
+    else if keyDown keys 65536 then some 2 else none
+  let c : Weapon.Context := { player := s.inventory.toPickup }
+  { s with inventory := { s.inventory with pickupState := { s.inventory.pickupState with
+      pendingWeapon := (c.select choice).player.pendingWeapon } } }
+
 /-- One simulation tick, shared by the SDL viewer and scripted tests. -/
-def Simulation.interactionTick (s : Simulation) (keys : UInt32) (walking : Bool := true) : Simulation := Id.run do
+def Simulation.interactionTick (s : Simulation) (keys : UInt32) (walking : Bool := true)
+    (command : Option Ticcmd := none) (playerActions : Simulation → Simulation := id)
+    (sectorEffects : Simulation → Simulation := id) : Simulation := Id.run do
   if s.physicsError.isSome then return s
-  let mut s := { s with ticks := s.ticks + 1, messageTicks := s.messageTicks - 1, audioEvents := #[], moverSounds := #[], exitSwitchSound := false, shotEvents := #[], deathEvents := #[] }
-  s := s.updateButtons.moveDoors
+  let mut s := { s with
+    ticks := s.ticks + 1, messageTicks := s.messageTicks - 1,
+    hudMessageTicks := s.hudMessageTicks - 1,
+    audioEvents := #[], moverSounds := #[], exitSwitchSound := false, shotEvents := #[], deathEvents := #[] }
+  s := s.updateButtons
   if s.physicsError.isSome then return s
   if walking then
-    match s.discoverSecret with
-    | .error error => return { s with physicsError := some error }
-    | .ok next => s := next
+    let (next, cmd) ← match s.prepareSectorTick keys command with
+      | .ok prepared => pure prepared
+      | .error failed => return failed
+    s := next
+    s := sectorEffects s
+    if s.physicsError.isSome then return s
+    if s.combatEnabled then s := s.selectWeapon keys
+    if UseButton.request s.useHeld (keyDown keys 4096) then s := s.use
+    s := { s with useHeld := keyDown keys 4096 }
+    s := playerActions s
+    if s.physicsError.isSome then return s
+    -- P_MovePsprites precedes power/damage counters; both precede item contact.
+    s := { s with inventory := s.inventory.tick }
     let oldLandings := s.player.landingEvents
     let player := { s.player with inventory := s.inventory }
     let lighting : SectorLights.World := {
       map := s.map, thinkers := s.lights, rng := s.rng
       busy := s.doors.map (·.sector) ++ s.movers.map (·.sector)
       movers := s.movers, moverSounds := s.moverSounds }
-    match player.tick s.map keys s.dropped (some lighting) with
+    match player.moveTick s.map cmd s.dropped (some lighting) with
     | .ok player =>
       s := { s with player, inventory := player.inventory }
-      if player.landingEvents > oldLandings then s := s.sound "oof"
       if let some world := player.scene.bind (·.lighting) then
+        for mover in world.movers do
+          if !s.movers.any (·.sector == mover.sector) then
+            s := s.dosSpawn s!"mover:{mover.sector}" (if mover.kind == .lift then 56 else 42) 51
         s := { s with map := world.map, lights := world.thinkers, rng := world.rng, movers := world.movers, moverSounds := world.moverSounds }
+      -- Crossing actions happen during XY movement, before P_ZMovement's
+      -- landing sound. Import their RNG first so it cannot erase the pitch draw.
+      if player.landingEvents > oldLandings then s := s.sound "oof"
     | .error error => return { s with physicsError := some error }
     s := s.pickups
-    if keyDown keys 4096 && !s.useHeld then s := s.use
-  return { s with useHeld := keyDown keys 4096 }
+  return s
 
 end Doom

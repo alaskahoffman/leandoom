@@ -1,0 +1,26 @@
+{
+  "schema": "leandoom-e1m1-proof-profile-v1",
+  "title": "Shareware E1M1 / Hurt Me Plenty / player 1",
+  "exe_sha256": "b8020523561a5ad9706e009a52d61c578f37faafd85ac471962308406292ce27",
+  "wad_sha256": "1d7d43be501e67d927e415e0b8f3e29c3bf33075e859721816f652a526cac771",
+  "demo_header_hex": "6d020101000000000001000000",
+  "episode": 1,
+  "map": 1,
+  "skill": 2,
+  "console_player": 0,
+  "players": [
+    true,
+    false,
+    false,
+    false
+  ],
+  "netgame": false,
+  "deathmatch": false,
+  "respawn": false,
+  "fast": false,
+  "nomonsters": false,
+  "comparison": "existing silent DOS live comparison; one presentation per tic",
+  "input_domain": "existing vanilla ticcmd profile, excluding special pause/save commands",
+  "goal": "all admitted input sequences from the pinned setup, not just one recorded playthrough",
+  "automap": false
+}

@@ -5,15 +5,236 @@ DOOM and DOOM II WADs. It now loads vanilla-format levels and renders first-pers
 views with WAD artwork, interactive doors, pickups, and a growing combat loop.
 **The fist, pistol, shotgun, four enemy types, damage, and death/restart work. Full gameplay and level progression remain in development.**
 
-The goal is a faithful port expressed idiomatically in Lean. The current playable
-build is a prototype: its movement, combat, and rendering still contain
-approximations and have not demonstrated vanilla demo or pixel compatibility.
-Replacing those approximations now takes priority over expanding gameplay.
+The goal is a faithful port expressed idiomatically in Lean. The playable build
+remains incomplete. Selected E1M1 routes match the original DOS executable's
+observed gameplay fields, with small rendering discrepancies still tracked.
+Full-game demo and pixel compatibility have not been established.
+
+The immediate proof target is **one fixed setup: shareware E1M1, Hurt Me Plenty,
+player 1, default single-player flags, using the existing silent ticcmd comparison**.
+We aim to cover every admitted input sequence in that setup. See
+[the fixed scope and current proof boundary](docs/E1M1_PROOF_SCOPE.md).
+See the [one-tic correspondence plan](docs/E1M1_CORRESPONDENCE_PLAN.md) for the
+remaining connections and the current runtime-focused priority.
+`./scripts/verify-e1m1-psprite-loop` rechecks the continuous original-byte proof
+through player preparation, lethal floor damage, weapon selection, the use gate,
+and the first weapon-animation countdown decision (620-instruction bound).
+It also proves the remaining flash countdown, coordinate copy, and actual return:
+these compose with a prior prefix for a 653-instruction bound when the weapon
+slot has completed and the flash needs no state transition. Those boundary
+conditions and the earlier initial-state contracts remain explicit. Expiring
+timers include the actual state-transition CALL.
+`./scripts/verify-e1m1-psprite-setter` now connects arbitrary slot countdowns to
+state installation and the actual action CALL, or null-state removal and return.
+It also proves the post-action decisions for zero-duration states.
+`./scripts/verify-e1m1-psprite-chain` composes finite action-free transition chains
+through their actual returns and the flash-loop continuation. Success requires
+enough fuel, no callback, and the expected loop return boundary; exhaustion and
+unsupported actions fail explicitly.
+`./scripts/verify-e1m1-psprite-light` extends these chains with the three original
+muzzle-flash light actions and pins the pistol/shotgun flash tables against the
+Lean metadata. `./scripts/verify-e1m1-flash-expiry` now connects all timer cases
+for the supported pistol/shotgun flash states to the production Lean flash update:
+state, timer, extra light, and coordinates agree through the original return,
+given an explicit input relation and table/stack separation on expiry. Other
+weapon actions, reachable-state invariants, the full Lean update, and the rest
+of the tic remain open. Whole-map equivalence is unfinished.
+`./scripts/verify-e1m1-weapon-flash` joins the weapon-to-flash loop boundary and
+proves matching flash observations of the production `Weapon.tick` when the
+weapon countdown invokes no action. The flash may still expire; initial memory
+contracts are transported through the weapon timer write.
+`./scripts/verify-original-weapon-raise` proves the original weapon-raising action's
+wrapping height arithmetic, in-progress return, and ready-state setter call
+against the production Lean helper. The called ready action and its connection
+to the complete weapon/flash update remain separate obligations.
+`./scripts/verify-original-weapon-ready` covers the idle ready action's bobbing,
+attack-latch clearing and actual return. It also connects raising to the setter
+and proves the nested return path through both setters, then attaches the flash
+phase under an explicit post-weapon boundary.
+`./scripts/verify-original-weapon-ready-gate` proves the pending/death/attack
+choices against the production `Weapon.readyDecision`, including the actual
+lower/fire call arguments, and joins idle decisions to bobbing and nested
+returns.
+`./scripts/verify-original-weapon-ready-entry` adds the real prologue and pose/
+chainsaw checks, stopping at actual reset/sound calls. It connects the ordinary
+no-reset idle path from entry through RET, and joins raising through the nested
+setters and ready action to the return loop.
+`./scripts/verify-original-weapon-ready-reset` closes the player-pose reset through
+the actual actor setter and RET, reusing a generalized return-address proof. It
+connects both firing poses through the supported-weapon sound bypass and idle
+continuation, including nested raising returns. Full firing/lowering behavior,
+reachable-state invariants and complete weapon-update correspondence remain open.
+
+`./scripts/verify-original-weapon-fire` connects the ready fire request through
+signed ammo acceptance and its real return, the marine's attack-pose setter,
+and weapon-state installation. The acceptance decision matches the live Lean
+helper for fist/pistol/shotgun under explicit memory relations.
+`./scripts/verify-original-weapon-continuation` adds supported-inventory fallback
+selection and connects initial attack-state entry through its actual return to
+the monster-alert call. It also proves the rejected-fire return suffix. The
+lowering callback is joined by `./scripts/verify-original-weapon-rejection`: the
+empty shot now runs through in-progress lowering and all nested returns. Original
+lowering-state records and their action relocations are pinned too. Bottom-of-
+lowering weapon switching and later firing callbacks remain open.
+`./scripts/verify-original-noise-alert` connects firing to the real sound-target
+setup and first sector decision/write. It preserves the revisit guard and
+wrapping traversal counter. `./scripts/verify-original-noise-traversal` adds
+line guards, the real opening call, sound-blocking decisions, loop advancement,
+and stack restoration. Terminal/pruned recursive children now return into the
+parent loop, and firing returns completely when its first sound sector terminates.
+`./scripts/verify-original-noise-opening` adds the complete original opening
+calculation and return, signed side-index lookup, and their connection to the
+recursive sound-call decision. `./scripts/verify-original-noise-iteration` joins
+complete line iterations and finite sector calls, including terminal/pruned
+children and the parent return. Per-iteration contracts and actual loop completion
+remain explicit. `./scripts/verify-original-noise-recursive` handles nonterminal
+children at arbitrary fuel-admitted nesting depth and connects successful
+recursive evaluation to noise entry and the firing return.
+`./scripts/verify-original-noise-frame` proves saved-frame provenance, restoration
+under separated writes, and local traversal progress. It removes the assumed
+return address from the leaf/pruned-child continuation theorem.
+`./scripts/verify-original-noise-preservation` extends this through arbitrary
+successful recursive traversals: it proves their write footprints, restores saved
+values under address separation, and joins nonterminal children to parent
+advancement. `./scripts/verify-original-noise-visits` relates the original signed
+visit gate and stores to a two-credit sector model, proves a `2*N` bound on
+admitted updates in its finite ledger, and preserves untouched marks and the
+generation counter under separated writes. `./scripts/verify-original-noise-accounting`
+maintains the whole ledger through finite recursive traces under local address/count
+guards, derives the admission bound, and realizes those traces in the original
+instruction model. Extra evaluator fuel preserves completed results. `./scripts/verify-original-noise-fuel`
+proves opening/dispatch register preservation, exact remaining-line progress,
+and a `2*N*(L+1)+1` evaluator-fuel bound for finite traces with explicit line
+guards (`N` ledger sectors, `L` maximum lines per admitted sector).
+`./scripts/verify-original-noise-map` preserves a shared description of DOS line
+counts, pointers and ordered arrays, derives cursor progress, and derives the
+numeric loop guards from that description and memory protection.
+`./scripts/verify-original-noise-allocation` derives local map, ledger and helper
+protection from disjoint allocation regions, and saved-frame restoration from
+a bounded child footprint. `./scripts/verify-original-noise-stack` then derives
+those child footprints and all extra memory guards over a checked finite trace
+from one entry stack reserve: `56*N+20` bytes below ESP, plus its incoming return
+word. The initial ledger supplies the admission bound.
+`./scripts/verify-original-noise-graph` proves the opening helper returns correctly
+and connects original signed side-table lookup to graph-closed child entry,
+including the zero/one sound-block count.
+`./scripts/verify-original-noise-graph-allocation` derives graph protection from
+shared storage regions and preserves it through the entire checked traversal,
+joining graph/map/frame preservation with the evaluator-fuel bound.
+`./scripts/verify-original-noise-count` proves count transfer into each child,
+exact restoration of the parent’s count, and a legal zero/one count at every
+sector/line entry of the checked traversal.
+`./scripts/verify-original-noise-termination` now constructs that finite traversal
+from static storage/graph certificates and initial state relations, proves it
+completes within the map-sized evaluator budget, and connects it to execution of
+the original instructions. No finite trace or successful evaluation is assumed.
+`./scripts/verify-original-noise-topology` checks the pinned WAD's sector/line
+structure in Lean and lifts it to the traversal theorem independently of heap
+addresses: 85 sectors, at most 32 lines per sector, 5,611 evaluator fuel and a
+sufficient 4,780-byte reserve below ESP, plus the incoming return word.
+`./scripts/verify-original-noise-image` derives the map, graph and fresh
+visitation-ledger relations from a consistent sparse byte-write plan, preserves
+untouched bytes, and joins that initialized state to bounded traversal completion.
+`./scripts/verify-original-side-loader` connects two original `P_LoadSideDefs`
+instruction segments to that byte-write model: side-table publication and the
+signed sector-index conversion/pointer store, including the temporary stack
+write. `./scripts/verify-original-group-lines` proves the per-sector line-array
+publication, count gate, membership branches and pointer store, and relates the
+selection rule to all 85 pinned E1M1 sector lists.
+`./scripts/verify-original-group-bounds` proves the original bounding-box helper,
+both vertex calls and returns, and the scan advance as one execution segment,
+including signed comparisons and memory aliasing.
+`./scripts/verify-original-group-scan` joins selection, skipping, both helper calls,
+and the loop back-edge, proves count preservation from finite storage conditions,
+and derives termination of the complete per-sector scan. The E1M1 bound is 20,431
+modeled instructions including entry.
+`./scripts/verify-original-group-output` connects those original stores to each
+pinned E1M1 sector's ordered pointer array and the sector representation used by
+the sound-traversal proofs. It derives input/output preservation from finite
+storage separation.
+`./scripts/verify-original-line-cache` proves the original front/back sector-cache
+branches and joins their stores to those scan inputs, with preservation of
+previously initialized line pointers. It covers signed side indices, absent
+sides, and the actual memory-access order.
+`./scripts/verify-original-line-load` joins the earlier raw WAD side-index copies,
+both pointer-cache branches and the loader advance into one bounded execution.
+The scan inputs now follow from raw indices and side-table relations, with
+memory separation explicit.
+`./scripts/verify-original-line-geometry` proves the original vertex-pointer and
+`dx`/`dy` prefix, then joins bounding-box setup to the index/cache/advance chain.
+It preserves signed comparisons, coordinate reloads and stored bounds.
+`./scripts/verify-original-line-setup` adds the metadata and slope branches and
+joins complete axis-aligned linedef iterations.
+`./scripts/verify-original-line-iteration` closes the diagonal call gap with a
+byte-memory proof of the original `FixedDiv` body, saved registers and RET,
+reusing the earlier arithmetic theorem. One complete successful iteration now
+has a 104-instruction bound. Arithmetic success is explicit; a kernel certificate
+checks the pinned E1M1 deltas, and native diagnostics exercise all 475 line
+iterations. `./scripts/verify-original-line-scan` joins the complete positive-count
+linedef loop, with a 49,400-instruction bound for 475 records, exact cursor/stack
+progress, and preservation of separated source and earlier output words.
+`./scripts/verify-original-line-source` now derives every iteration's division
+safety from the pinned WAD geometry, an initial raw-index/decoded-vertex memory
+relation, and static address separation. It proves that each prefix reads the
+exact original coordinate differences. `./scripts/verify-original-line-output`
+now proves that the whole loader establishes all cached front/back sector
+pointers required by the existing grouping proof, preserving earlier outputs
+through later iterations and matching the relocated topology list.
+`./scripts/verify-original-group-count` proves the original counting gate,
+counting iteration and backedge, and allocation arguments. The iteration counts
+each sector once per incident line, preserves separated cached pointers, and
+matches the grouping scan's membership predicate. Native cross-checks of all 475
+records produce 642 references (2,568 allocation bytes).
+`./scripts/verify-original-group-count-scan` now proves the complete original
+counting pass, including entry, every backedge and allocation arguments, within
+8,084 instructions. From zero-initialized counters and the pinned input/layout
+relations it derives all 85 grouping-list lengths and the exact 2,568-byte
+request. Cached input pointers and separated memory survive the pass.
+`./scripts/verify-original-group-handoff` proves the selected-block tail of
+`Z_Malloc`, its actual return, and grouping entry through the `M_ClearBox`
+call/return. It preserves separated counts and cached pointers, returns the
+allocated payload address, and initializes all four bounding-box words.
+`./scripts/verify-original-group-selected` extends that path backward through
+candidate acceptance and block splitting, including the original signed
+comparison and strict 64-byte remainder threshold. A suitable free candidate
+now runs through splitting, allocation return and grouping entry within 53
+instructions, preserving separated counts and cached pointers.
+`./scripts/verify-original-group-malloc` now starts at the actual allocator CALL,
+proves the prologue, wrapping request rounding and rover/predecessor choice,
+and joins a suitable first free block to the split/return path within 78
+instructions. The return address is derived from the CALL. A composed theorem
+runs the complete counting pass through allocation and grouping entry within
+`87 + 17 * lines.length` instructions, preserving separated counts and pointers.
+It still requires explicit initial heap conditions; 480 native instruction
+cross-checks supplement the kernel proof and 85-declaration axiom audit.
+`./scripts/verify-original-group-heap` derives those allocator conditions from a
+raw header view and byte-separation facts before counting starts. It proves the
+headers survive counting and all five CALL/prologue stack writes, then derives
+candidate acceptance and return-slot safety. Its 98-declaration audit uses the
+same axiom allowlist. Establishing that header view from the preceding startup
+allocations remains a separate obligation.
+`./scripts/verify-original-group-remainder` proves the nonzero cache-owner branch
+and that splitting followed by allocation establishes the next free-block view.
+It covers the metadata path used by the preceding `REJECT` allocation, with
+115 audited declarations and 144 native instruction checks. Earlier heap
+construction and the intervening return/caller instructions remain obligations;
+the recorded startup history guides this work but is not a proof premise.
+`./scripts/verify-original-group-return` extends that path through four saved
+register restores, the allocator's actual RET, and `W_CacheLumpNum`'s actual
+CALL into `W_ReadLump`. It derives the read index and published payload pointer,
+preserves the free-block view, and accounts for return-slot reuse. Validation
+audits 139 declarations and checks 288 native cases. The file read and earlier
+allocation entry remain separate obligations.
+The allocator's general search/purge loop and initial heap relation remain open, along with
+constructing the initial images and zero counters through startup, joining the
+intervening instructions and outer sector loop, and live Lean sound-worklist
+correspondence.
 
 Map/artwork decoding, BSP traversal, rendering, and player movement are written in Lean.
 A small C adapter provides SDL2 window, input, clock, and framebuffer presentation.
 Python constructs independent test fixtures, drives executable tests, and serves the optional local proof view. There
-are no Lean package dependencies and no embedded C DOOM engine.
+are no fetched Lean package dependencies and no embedded C DOOM engine. The
+interaction model vendors the small, BSD-licensed core of the Lean HITrees library.
 
 ## Play E1M1
 
@@ -49,6 +270,316 @@ after fetching shareware to regenerate kernel-checked certificates from the orig
 executable. See [the arithmetic/RNG proofs and exact scope](docs/ARITHMETIC_PROOFS.md).
 These prove the core operations, not all engine arithmetic, random-call ordering,
 or whole-engine compatibility.
+
+**Original player-turn block:** a separate proof connects six original
+`P_MovePlayer` instructions to the engine's `Motion.turn`, for every signed
+16-bit turn command and 32-bit angle, including wraparound. It also proves the
+four-byte write footprint and preservation of the untouched registers under an
+explicit flat-memory x86 projection. Run `./scripts/verify-original-turn`;
+see [the player-turn proof and assumptions](docs/PLAYER_TURN_PROOF.md).
+
+**Original player-thrust body:** reusable byte decoding and block-summary proofs
+connect the 17 original thrust instructions to `Motion.thrust`, for every related
+32-bit angle, thrust and momentum state. Both multiplication sites reuse the
+existing arithmetic theorem. The proof covers exact momentum and memory effects
+under explicit table/separation assumptions in data-object-relative memory;
+it does not yet prove DOS loading or complete player updates. Run
+`./scripts/verify-original-thrust`; see [the thrust proof and reusable tooling](docs/PLAYER_THRUST_PROOF.md).
+
+**Original movement guards:** checked conditional execution now connects the DOS
+ground check and forward/sideways branch decisions to the engine conditions,
+including signed-overflow cases and the cached `onground` value. Complete
+player-update composition remains a separate obligation. Run `./scripts/verify-original-move-guards`; see
+[the movement guard proof and boundaries](docs/PLAYER_MOVE_GUARDS_PROOF.md).
+
+**Original inlined thrust:** the actual forward/sideways bodies inside
+`P_MovePlayer` are also proved against `Motion.thrust`, including signed command
+scaling, quarter-turn wraparound, and the temporary stack write. The proofs reuse
+the arithmetic and standalone thrust results under explicit memory relations.
+Run `./scripts/verify-original-inline-thrust`; see
+[the inlined thrust proof](docs/PLAYER_INLINE_THRUST_PROOF.md).
+Joining these blocks into a complete player update, collision, and whole-tic
+correspondence remains unproved.
+
+**Composed movement entry:** turning and the forward guard now have one
+continuous original-byte proof. Their shared memory/register state is carried
+through execution, and the guard's inputs follow from assumptions made before
+turning. Run `./scripts/verify-original-move-entry`; see
+[the composed entry proof](docs/PLAYER_MOVE_ENTRY_PROOF.md). This stops at the
+forward-thrust or side-guard entry; the full player update remains unproved.
+
+**Forward thrust into the side guard:** a second continuous region proves that
+thrust preserves the cached ground flag and side command, then chooses the
+engine's sideways branch. Both forward-executed and forward-skipped entries
+are covered under explicit input relations. Run `./scripts/verify-original-forward-side`;
+see [the forward/side proof](docs/PLAYER_FORWARD_SIDE_PROOF.md). The complete motion region is joined below.
+
+**Joined movement region:** turning, the forward decision, optional forward
+thrust and the side decision now compose under one initial memory relation.
+The proof derives intermediate inputs and checks final angle, momentum, memory
+and branch destination. Run `./scripts/verify-original-move-join`; see
+[the joined movement proof](docs/PLAYER_MOVE_JOIN_PROOF.md). This intermediate
+result stops at the side decision; the extension below executes side thrust too.
+
+**Complete angle and momentum region:** one continuous proof now covers turning
+and both conditional thrusts, from a single initial memory relation. Its final
+angle and momenta equal the actual `Motion.movePlayer cmd` for all turn, forward
+and side commands under that relation. The certificate checks 213 original
+bytes and six relocations; 132,352 independent x86 comparisons passed. Run
+`./scripts/verify-original-move-motion`; see
+[the complete motion proof](docs/PLAYER_MOVE_MOTION_PROOF.md). Animation, the
+function wrapper, caller invariants and the rest of a tic remain unproved.
+
+**Original animation call:** the animation suffix now proves the command and
+standing-state decisions plus the actual `P_SetMobjState(S_PLAY_RUN1)` call,
+including stack/register restoration and the four animation-field writes. The
+state and timer match the runtime's shared `PlayerAnim.State.startWalking`
+helper. Run `./scripts/verify-original-player-animation`; see
+[the animation call proof](docs/PLAYER_ANIMATION_PROOF.md).
+
+**Joined motion and animation:** the complete regions now execute continuously
+under one pre-turn relation, deriving the animation and callee inputs instead
+of assuming new relations at the seams. Final angle, momenta, animation state
+and timer match the runtime functions; the stack pointer is restored. Run
+`./scripts/verify-original-player-joined`; see
+[the joined player proof](docs/PLAYER_JOINED_PROOF.md). This regional result is extended
+to the full function below.
+
+**Complete original player-movement function:** the proof now starts at
+`P_MovePlayer`'s first register save and executes through its final return.
+It derives the body's relation through the actual prologue, preserves the
+return address, restores all six saved registers and checks final runtime
+motion/animation fields. Run `./scripts/verify-original-player-function`; see
+[the complete-function proof](docs/PLAYER_FUNCTION_PROOF.md). Establishing its
+entry relation from reachable caller states and proving the rest of the tic
+remain separate obligations.
+
+**Original caller and return:** `P_PlayerThink`'s argument setup, actual CALL to
+`P_MovePlayer`, and post-return argument reload are now joined. The proof
+derives the callee's entry relation and return address from call-site data,
+restores the caller's stack, and prepares its player pointer for the next
+height-calculation call. Run `./scripts/verify-original-player-caller`; see
+[the caller proof](docs/PLAYER_CALLER_PROOF.md). The earlier reaction-time branch,
+later height calculation and reachable-state invariants remain outside it.
+
+**Reaction-time decision:** the proof now covers both caller branches: zero
+executes movement; nonzero decrements the timer and skips movement/animation
+entry for that tic. The corresponding helpers are wired into live player
+preparation, including retained cached ground when movement is skipped. Run
+`./scripts/verify-original-player-reaction`; see
+[the reaction-time proof](docs/PLAYER_REACTION_PROOF.md). Height calculation and
+whole-tic/reachable-state correspondence remain outside this result.
+
+**Complete view-height function:** an original-byte theorem now covers all of
+`P_CalcHeight`, from its first PUSH through RET. It proves all four view fields
+match the live Lean calculation, restores the six saved registers and stack, and
+preserves memory outside the view/stack writes. Inputs, table initialization and
+memory separation are explicit entry premises. The actual height CALL/RET is
+also proved, and the preceding reaction/movement output now establishes its
+entry contract, including updated momentum and retained/refreshed grounding.
+A continuous original-byte theorem now runs the reaction branch, movement,
+walking-state call and height calculation under one code origin, proving eleven
+preparation fields: angle, horizontal momenta, animation/state tics, reaction
+timer, four view fields, and cached grounding. It restores caller ESP and
+preserves reads outside the combined write footprint. These fields now connect
+directly to the live `Player.prepareTick` method, conditional on successful scene
+synchronization, a supported player actor and the original entry contract.
+Whole-player-tic correspondence and reachable-state invariants remain open. Run `./scripts/verify-original-player-height`; see
+[the height proof](docs/PLAYER_HEIGHT_PROOF.md) for the contract and validation.
+
+**Sector dispatch after preparation:** the same original-byte execution now
+continues through the player's sector lookup and 16-bit special-field test.
+Both branches preserve the eleven preparation fields, caller ESP and player
+pointer. The generic nonzero-sector theorem stops immediately before the handler CALL
+with its argument prepared; the secret-sector extension below continues through it. The proof assumes the
+initial sector lookup data cannot alias preparation writes. Run
+`./scripts/verify-original-sector-dispatch`; see
+[the sector dispatch proof](docs/PLAYER_SECTOR_DISPATCH_PROOF.md).
+
+**Secret-sector caller and handler:** the original sector lookup now continues
+through the actual CALL, register-saving PUSHes, floor check, switch, secret
+writes and RET. It matches the live Lean secret helper on and off the floor,
+restores the caller's stack pointer and preserved registers, and derives the
+saved return address from the CALL. Initial field encoding and memory-separation
+contracts remain explicit. The [joined proof](docs/PLAYER_SECTOR_JOINED_PROOF.md)
+now runs continuously from preparation through the secret-handler return,
+preserving the eleven preparation fields and proving the two secret fields.
+Its contracts refer only to the initial state, including memory separation in
+both directions. The [runtime connection](docs/PLAYER_SECTOR_RUNTIME_PROOF.md)
+now proves those fields agree with the actual preparation/secret phase called
+by `Simulation.interactionTick`, including the updated map sector. Successful
+scene synchronization, a supported actor, valid initial sector lookup, and the
+DOS entry relation remain explicit premises. Run
+`./scripts/verify-original-sector-joined`; see also
+[the caller component](docs/PLAYER_SECTOR_CALLER_PROOF.md).
+
+**Damaging-floor decisions:** [the original-byte proof](docs/PLAYER_FLOOR_DAMAGE_PROOF.md)
+now covers ordinary floor types 5/7/4/16 up to the damage-call boundary: suit
+protection, the 32-tic gate, actual RNG CALL/RET, requested damage, and call
+arguments. A single joined proof now starts before player preparation and continues
+through reaction/movement, animation, view height, outer sector lookup, actual CALL
+and prologue, floor check, and code-table dispatch. Initial memory contracts
+establish the floor inputs through preparation and preserve all eleven prepared
+fields through the floor decision. The result is now linked to the live
+preparation and floor-request functions consumed by combat, including the suit,
+clock, synchronized position, lookup errors, and RNG handoff. Applying nonzero
+damage and the original handler return remain separate obligations. Run
+`./scripts/verify-original-floor-joined` (or `./scripts/verify-original-floor-damage`
+for the caller component).
+
+**Player armor absorption:** [the original armor block](docs/PLAYER_ARMOR_PROOF.md)
+now agrees with the helper used by live player damage for every signed 32-bit
+damage, armor and armor-type value. The proof covers both division paths,
+armor depletion, wrapping subtraction and the complete memory effect.
+Run `./scripts/verify-original-player-armor`.
+The [damage-entry connection](docs/PLAYER_DAMAGE_ENTRY_PROOF.md) now runs continuously
+from the actual floor CALL through the prologue, shootability/health/skill and
+protection guards, and armor. It matches the live damage routine under explicit
+initial call-boundary contracts. Run `./scripts/verify-original-player-damage-entry`.
+The [player bookkeeping connection](docs/PLAYER_HEALTH_PROOF.md) extends this
+continuous run through player health, attacker and damage-count stores, including
+32-bit wraparound and signed clamps. Run `./scripts/verify-original-player-health`.
+The [actor-health continuation](docs/ACTOR_HEALTH_PROOF.md) now carries the same
+run through the actual disabled-device tactile CALL/RET, the unclamped actor-health
+store, and death/survival selection. Run `./scripts/verify-original-actor-health`.
+The [pain-decision continuation](docs/PLAYER_PAIN_PROOF.md) extends that run through
+the real gameplay RNG CALL/RET and pain branch, including index wraparound and
+no draw on rejected/lethal damage. Run `./scripts/verify-original-player-pain`.
+The [pain-state handoff](docs/PAIN_HANDOFF_PROOF.md) now includes the original
+`MF_JUSTHIT` byte update and the real state-setter CALL, proving the target,
+state 156 and return address. Run `./scripts/verify-original-pain-handoff`.
+The [pain-state setter continuation](docs/PAIN_SETTER_PROOF.md) carries the same
+run through state/tic/sprite/frame writes and the setter's RET, restoring its
+saved registers and preserving the damage/RNG results. State and duration are
+linked to live `PlayerAnim.enter 156`; sprite/frame use the pinned original table.
+Run `./scripts/verify-original-pain-setter`.
+The [surviving-damage return](docs/DAMAGE_RETURN_PROOF.md) now clears reaction time,
+preserves the damage/animation results and restores the original floor caller's
+stack and saved registers through the handler's own RET. The live damage wrapper
+also uses the proved reaction-reset rule. Run `./scripts/verify-original-damage-return`.
+The [nonlethal-damage return](docs/DAMAGE_REJECTED_PROOF.md) combines that result
+with rejected hits. Rejection returns through the same original CALL boundary,
+preserves the old attacker, reaction timer and RNG state, and writes only the
+actual CALL/prologue stack saves. Run `./scripts/verify-original-damage-rejected`.
+The [lethal-damage continuation](docs/KILL_ENTRY_PROOF.md) follows the original
+kill CALL and prologue through player corpse flags and signed quarter-height,
+matching the live `Death.corpse` helper while preserving damage bookkeeping.
+Run `./scripts/verify-original-kill-entry`. The
+[kill-bookkeeping continuation](docs/KILL_BOOKKEEPING_PROOF.md) follows the same
+run through environmental kill credit, self-frags, dead state and solidity,
+then the real weapon-lowering CALL. It matches live `Death.bookkeeping` and
+checks the player argument and saved return address for all four slots. Run
+`./scripts/verify-original-kill-bookkeeping`.
+The separate [weapon-lowering action proof](docs/WEAPON_LOWER_PROOF.md) now
+matches the original half-word movement, signed clamp and action RET to live
+`Weapon.lowerHeight`, for every 32-bit height of a dead player. Run
+`./scripts/verify-original-weapon-lower`. The [weapon-drop call-chain proof](docs/WEAPON_DROP_PROOF.md)
+connects the psprite setter, its indirect action call, and all returns, and joins
+that result to the lethal floor-damage run (213 instructions). Run
+`./scripts/verify-original-weapon-drop`. The next
+[death-branch proof](docs/DEATH_BRANCHES_PROOF.md) joins the original automap
+guard and normal/extreme death-state choice to that lethal run, transporting
+initial-memory contracts and using the proved post-damage health (239-instruction
+bound). It stops at actual callee entries. Run
+`./scripts/verify-original-death-branches`. The next
+[automap shutdown proof](docs/AUTOMAP_STOP_PROOF.md) connects that death guard
+through all ten cache-retagging calls to the actual DOS notification branch
+(239 instructions from the guard). Run `./scripts/verify-original-automap-stop`.
+The pinned DOS notification takes keydown processing, so proving that responder
+continuation remains necessary; a separate exit-event return theorem is explicitly
+conditional. Joining the cache contract from the earlier lethal floor entry,
+death-state setter/RNG handling and remaining lethal returns are still open.
+Transporting the initial contracts from the earlier preparation proof and later
+pain actions also remain open; enabled tactile hardware is outside scope.
+
+**Executable interaction model:** the live comparison worker runs an E1M1
+HITree using the Lean core from [HITrees: Higher-Order Interaction Trees](https://arxiv.org/abs/2510.14558).
+Kernel-checked proofs establish that, for every starting engine state and finite
+command list, interpreting this tree gives exactly the shared engine's direct
+replay: frames, exit/fault result, and unconsumed inputs. This connects the model
+to the engine; it does **not** prove all-input DOS equivalence. See
+[the interaction model and proof boundary](docs/INTERACTION_MODEL.md).
+
+**Tick-by-tick comparison:** `./scripts/compare-original-demo --fetch` runs the
+unchanged shareware 1.9 `DOOM.EXE` in a pinned, instrumented DOSBox-X build and
+compares initialization, RNG indices, player position, momentum, angle, health,
+armor, ammo, weapon selection/animation and selected imp/zombieman state-machine fields with
+Lean and Chocolate Doom on identical E1M1 demo commands. The broader
+`./scripts/compare-demo run --fetch` traces additional fields against Chocolate
+Doom as a diagnostic reference. Current engine differences are expected; these
+are differential tests, not whole-game proofs or parity claims.
+See [the demo comparison guide](docs/DEMO_COMPARISON.md) for supported inputs,
+trace coverage, and reproducible reports.
+
+**Live DOS pixel comparison:** `./scripts/compare-original-live` opens a local
+playable difference view against the original shareware executable. Both engines
+receive the same demo commands; matching pixels appear gray and differences red.
+The adapter captures DOS VGA memory directly, using the palette before hardware
+color conversion. Pause, step, or save a frame with its replay inputs. See
+[the live DOS setup and scope](docs/DEMO_COMPARISON.md#live-original-dos-rendering).
+`./scripts/compare-live` keeps the Chocolate comparison available separately.
+
+The pinned E1M1 movement (141 tics), firing/use (170 tics) and moving-fire
+(145 tics) cases now match from
+initialization through their final tics, both against the original executable's
+selected fields and the broader Chocolate trace, now including live puff/blood
+positions and animation state. Player turn/thrust and view calculation precede
+use/fire; XY/Z movement and pickups follow, preserving the original shot origin
+while moving. Puff/blood objects consume
+their ordered spawn draws before damage, move, animate, render and expire. Their
+spawn/state/Z-motion routines also match 48,168 original-C snapshots at `-O0`
+and `-O2`. These finite cases do not establish whole-game equivalence; general
+thinker interleaving and wider gameplay coverage remain pending.
+
+The new 521-tic first-enemy encounter opens the starting-area door and reaches
+the zombiemen. Lean now matches initialization and all **521 tics** of both the
+original executable's captured fields and the broader Chocolate trace. The DOS
+observer now captures enemy position, XYZ momentum and signed health as well as
+state-machine fields. It independently detected the old tic-426 knockback bug
+before the fix. Monster thrust, momentum movement, friction and corpse sliding
+now run before state actions; 41,472 snapshots match independent original-C
+fixtures at `-O0` and `-O2`. Player damage applies
+knockback before armor/invulnerability and preserves the pain draw and delayed
+body-animation sound. Its core matches 8,992 unchanged-C damage cases at `-O0`
+and `-O2`.
+
+The **1,961-tic shotgun-secret route** now continues that encounter from the
+normal spawn: imp combat, slime damage, the second door, a lowering floor,
+secret discovery, medikit and shotgun pickups, automatic switching and three
+shotgun blasts. Every declared field matches both the original DOS profile and
+the broader Chocolate profile, with repeatable original traces. It exposed and
+fixed missing floor damage at tic 1,249 and an inert collected-item slot at tic
+1,828. Damaging floors also match 43,008 independent original-C cases at `-O0`
+and `-O2`, including suit leakage RNG and floor-height/clock boundaries.
+The first five regression routes total 2,938 matching tics (including shared
+prefixes); these finite tests establish neither whole-game equivalence nor a new
+mathematical theorem. The expanded DOS observer now reads health, armor, all four
+ammo counters, pending/ready weapons, secret count, weapon and muzzle-flash states
+and countdowns, weapon XY, refire and extra light directly from guest memory.
+The full route matches these additional fields too. Exact instruction bytes
+support the memory layout, and tests check malformed pointers and deliberately
+changed observations. Both profiles now also capture imp fireball position,
+momentum, angle, floor/ceiling bounds, source, spawn `lastlook`, animation and
+missile flag. All six fireballs (414 snapshots), including explosions and
+removals, match the original executable. These are finite comparisons, not a
+universal projectile-equivalence proof. Other projectile types, general
+map-object removal and sector heights remain outside the DOS profile; the latter
+two use the diagnostic trace.
+
+The **2,445-tic E1M1 exit route** now extends that exact input sequence through
+the final imp and exit-switch activation. All declared fields match DOS DOOM
+and Chocolate through the exit request, which is now read directly from DOS
+memory. The route exposed a closing-door quirk at tic 2,243: Lean crushed the
+imp corpse physically but retained its old death state. It now enters the
+original `S_GIBS` state too. All six routes pass (5,383 tics, including shared
+prefixes). This is a tested spawn-to-exit-request correspondence; intermission,
+the next-level transition and all-input equivalence remain unfinished.
+
+The live imp/zombieman countdown also has a
+[kernel-checked correspondence proof](Doom/Proofs/ActorClock.lean) for every
+32-bit countdown, plus a conditional rule for composing corresponding state
+transitions. Its reference is an operational transcription of the original
+countdown branch; this is not yet a proof of the complete enemy AI or its binary.
 
 Source code is **GPL-2.0-or-later**; see [COPYING.md](COPYING.md) and the upstream
 attributions in the source files. DOOM game data belongs to its respective rights
@@ -312,11 +843,55 @@ vanilla. Patch sprite offsets are decoded separately and do not alter texture
 placement origins. Nonempty patch/texture dimensions are limited to 2048×2048;
 extended tall-patch conventions and modern texture formats are unsupported.
 
-Projection uses floating point. Actual WAD colors/light tables are used, but
-light-table selection and sky projection are approximate. Texture wrapping uses
-the image dimensions rather than emulating vanilla's non-power-of-two quirks.
-Texture/flat animations and most actor AI/action callbacks remain unimplemented. Frames are
-repeatable on the tested platform, but are not bit-exact vanilla output or
+The 320-wide high-detail world renderer now uses original fixed-point wall
+projection: unsigned angle clipping, endpoint scale interpolation, 20.12 edge
+stepping and integer texture columns/rows. Floors and ceilings collect visplanes
+and draw horizontal spans with the original packed 6.10 texture coordinates,
+including cross-coordinate carries. Wall/plane scales and distances now feed the
+original lighting tables directly. Sprite projection now uses the original fixed
+transform, rotation selection, patch origins and source stepping. Saved drawseg
+silhouettes clip sprites; masked walls interleave with sprites in draw order.
+BSP bounding-box rejection and stable equal-scale ordering are retained. Weapon
+posts keep the original half-unit texture midpoint during bobbing.
+
+Surface animations follow the original directory ranges, absolute resource-index
+phase and eight-tic cadence. Single-patch texture columns preserve the original
+fast path that ignores the placement's vertical offset (including DOOM1's SKY1).
+Opaque columns retain original WAD padding reads at short-wall edges. Composite
+patches preserve the negative-origin clipping quirk, and passive sprite animations
+start from the original randomized spawn countdown.
+
+Differential checks cover 3,009 wall/plane arithmetic cases, 304 packed span
+sequences, and 4,590 sprite/post/animation cases against extracted C at `-O0` and
+`-O2`, alongside the existing light-table and sky checks. These are finite tests,
+not universal proofs. In seven
+[matched-state frame comparisons](docs/DEMO_COMPARISON.md#rendered-frame-comparison),
+all seven frames are now pixel-exact, as is the separate sky-window frame.
+All eight repeated captures match across the full 320×200 image. An additional
+61 composite-column cases match original C at both optimization levels.
+
+For interactive pixel hunting, run `./scripts/compare-live` and open its printed
+URL. Both engines receive the same inputs: matching pixels appear in grayscale,
+differences in red. Pause or save a frame with its complete replay inputs; see
+[the live comparison guide](docs/DEMO_COMPARISON.md#live-pixel-hunting).
+
+`./scripts/compare-original-live` compares against the original DOS shareware
+executable. Its pinned E1M1 profile now models DOS allocation and cache ordering
+in Lean, so texture reads past a lump can observe the original neighboring WAD
+bytes and allocator headers. The 2,211-tic manual regression is pixel-exact and
+matches all declared gameplay fields; independently generated allocations and
+frees match DOS through its final level frame. This is finite test evidence,
+not whole-game equivalence. See the [memory-model scope and checks](docs/DEMO_COMPARISON.md#dos-heap-model-and-live-allocation-lifecycle).
+
+The DOS presenter also retains three independent video pages, reproducing old
+pixels exposed by narrow BSP/slime-trail gaps. A separate 1,941-tic manual seam
+recording now has no pixel differences; see [video-page history](docs/DEMO_COMPARISON.md#dos-video-page-history-at-slime-trail-seams).
+
+Full rasterizer correspondence remains pending. Texture width wrapping still
+uses image dimensions rather than vanilla's non-power-of-two mask. Render-only
+projectiles/impact effects do not yet share the complete original sector-list
+insertion history. General overflow/invalid-WAD behavior is not established.
+Frames are repeatable on the tested platform, but are not universally bit-exact or
 guaranteed identical across platforms. The renderer trusts structurally validated
 map references; it does not prove that an arbitrary map's BSP describes valid
 convex subsectors.
@@ -378,8 +953,12 @@ The WAD-backed status bar replaces the development text, crosshair and RGB tints
 It uses a 320×168 view, original digit/icon positions, and an animated face.
 Weapon offsets and frame metadata come from the WAD/original state tables;
 the supported weapons now use original switching, bobbing and attack states.
-Active ammo follows the weapon readied at the bottom of the lowering sequence. Original HUD messages,
-menus, intermissions and configurable view sizes remain separate work. See the
+Active ammo follows the weapon readied at the bottom of the lowering sequence.
+Pickup messages use the original `STCFN033`–`STCFN095` WAD font at the top left,
+uppercase text, patch offsets/spacing, and the 140-tic timeout. They receive the
+active palette without sector/distance shading; development notices do not
+replace them. Message toggling/recall, chat, menus, intermissions and configurable
+view sizes remain separate work. See the
 status-bar scope in `docs/ROADMAP.md`.
 Invulnerability protection and inverse colormaps, and light-amplification colormaps
 work. Other power-up effects beyond inventory/timers/healing,
@@ -428,8 +1007,8 @@ This verifies these weapon routines and their integration, not complete combat
 or demo parity. The map-start adapter still begins with the pistol ready instead
 of running `P_SetupPsprites`; full player mobj attack-state/thinker ordering,
 blood/puff spawning and its RNG, original damage/thrust, and other weapons remain
-pending. Muzzle flash patches are fullbright; the ported extra-light state is
-recorded, but its world-lighting effect still awaits the renderer lighting port.
+pending. Muzzle flash patches are fullbright; the ported extra-light state now
+brightens wall, plane, sprite and weapon light-table selection.
 Unsupported weapon pickups retain their pending request without equipping them.
 
 ## E1M1 sound and music
@@ -479,9 +1058,12 @@ approximation, rather than claiming original DAC waveform equivalence. OPL3,
 hardware rhythm mode, external MIDI, General MIDI playback, PC-speaker effects,
 linked chaingun sounds, episode-four music remapping and volume controls remain
 outside this milestone. E1M1 percussion uses GENMIDI melodic voices and is covered.
-Full sound-event interleaving depends on the remaining thinker/AI ports: non-imp
-alert choice/cadence and player damage timing still use the prototype adapters
-(zombiemen/shotgunners currently use `posit1` for alerts). The independently checked
+Full sound-event interleaving depends on the remaining thinker/AI ports:
+zombieman alert variants and action cadence now follow the original state machine,
+while shotgunner alerts, monster damage and general thinker ordering still use
+partial adapters. Player pain sounds now follow the original body-state delay
+and can be interrupted by firing.
+The independently checked
 channel and synthesis routines do not establish those remaining gameplay timings.
 
 ## Live proof companion
@@ -808,10 +1390,10 @@ It uses the original 50-entry offset table, skips the top/bottom view borders,
 samples the indexed framebuffer one row above/below, applies COLORMAP row 6,
 and observes earlier writes within the same post. Fuzz takes precedence over
 inverse/fullbright maps. Spectres (editor 58) and invisible weapon/flash posts
-use this path, preserving transparent holes and clipping against world depth.
+use this path, preserving patch posts and clipping against saved wall silhouettes.
 Rendering now retains palette indices alongside RGB: duplicate RGB palette colors
 cannot destroy the source index. Background sprites draw before nearer fuzz
-sprites, with deterministic map-order ties in the current renderer.
+sprites, with stable equal-scale ties following sector insertion order.
 
 The SDL renderer owns fuzz phase across posts, sprites and presentations, even
 without a simulation tic and across game restarts. Single-frame CLI exports start
@@ -1331,7 +1913,9 @@ and replace the prototype's arithmetic and simulation foundations. See
 | `Doom/Fixed.lean`, `Doom/Bsp.lean` | Coordinate arithmetic and spatial queries |
 | `Doom/Tables.lean`, `Doom/Angles.lean` | Exact trig tables and binary-angle operations with checked indices |
 | `Doom/Assets.lean` | Palette/light tables, patches, composited textures, flats, sky selection |
-| `Doom/Render.lean` | Camera spawn, software renderer, PPM output |
+| `Doom/Render.lean` | Wall clipping, visplanes, world/sprite drawing, PPM output |
+| `Doom/RenderProjection.lean`, `Doom/RenderSky.lean` | Fixed-point projection, wall/plane stepping and angle tables |
+| `Doom/RenderSprite.lean`, `Doom/SurfaceAnimation.lean` | Sprite/post projection and resource animation phase |
 | `Doom/Controls.lean`, `Doom/Player.lean` | Free-camera controls and runtime WAD/input adapter for reference-tested walking |
 | `Doom/Ticcmd.lean`, `Doom/Motion.lean` | Reference-tested keyboard commands, thrust, movement splits and friction |
 | `Doom/PlayerPhysics.lean` | Reference-tested gravity, landing events, view height/bobbing, and isolated physics sequence |

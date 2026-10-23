@@ -7,9 +7,9 @@ spec=importlib.util.spec_from_file_location('death_data',ROOT/'scripts/generate-
 data=importlib.util.module_from_spec(spec);spec.loader.exec_module(data)
 GROUPS=('imp_actions','imp_chase','imp_sequences','imp_projectile_spawn')
 
-def oracle_source(upstream):
+def oracle_source(upstream, zombie=False):
     rows,ids,_,_=data.data()
-    labels=[r[-1] for r in rows if r[-1].startswith(('S_TROO_','S_TBALL')) and not any(s in r[-1] for s in ('DIE','RAISE'))]
+    labels=[r[-1] for r in rows if r[-1].startswith(('S_POSS_' if zombie else 'S_TROO_','S_TBALL')) and not any(s in r[-1] for s in ('DIE','RAISE'))]
     tables='enum {SPR_TROO,SPR_BAL1};\nenum {'+','.join(f'{n}={ids[n]}' for n in labels)+'};\nstatic state_t states[1000]={\n'
     for label in labels:
         spr,frame,tics,action,nxt,_=rows[ids[label]]
@@ -39,7 +39,18 @@ static mobj_t *P_SpawnMobj(int x,int y,int z,int type){
     mobj=upstream['src/doom/p_mobj.c']
     projectile+=function(mobj,'void P_ExplodeMissile')+function(mobj,'void P_CheckMissileSpawn')
     projectile+='\n#define P_SpawnMissile Original_SpawnMissile\n'+function(mobj,'mobj_t*\nP_SpawnMissile')+'\n#undef P_SpawnMissile\n'
-    return (ROOT/'tests/reference/imp_fixture.c').read_text().replace('/* TABLES */',tables).replace('/* ROUTINES */',code).replace('/* PROJECTILES */',projectile)
+    fixture=(ROOT/'tests/reference/imp_fixture.c').read_text()
+    if zombie:
+        tables=tables.replace('SPR_TROO','SPR_POSS').replace('S_TROO_','S_POSS_')
+        tables=tables.replace('S_POSS_RUN1,S_POSS_ATK1,S_POSS_ATK1,sfx_bgsit1,0,sfx_bgact',
+                              'S_POSS_RUN1,0,S_POSS_ATK1,sfx_posit1,0,sfx_posact')
+        fixture=fixture.replace('S_TROO_','S_POSS_').replace('.type=3001','.type=3004')
+        fixture=fixture.replace('sfx_firxpl};','sfx_firxpl,sfx_posact};').replace('"firxpl"};','"firxpl","posact"};')
+        fixture=fixture.replace('/* TABLES */','static void A_PosAttack(mobj_t *);\n/* TABLES */')
+        # The state-machine oracle observes the attack request at its boundary.
+        # Actual aim, sound, spread/damage and hitscan remain runtime operations.
+        code+='\nstatic void A_PosAttack(mobj_t *a){if(!a->target)return;A_FaceTarget(a);event(" hitscan");}\n'
+    return fixture.replace('/* TABLES */',tables).replace('/* ROUTINES */',code).replace('/* PROJECTILES */',projectile)
 
 def setup(x=128,y=0,angle=0,target=1,direction=0,mask=255,sight=1,heard=0,ambush=0,shadow=0,reaction=8,count=0,threshold=0,hit=0,attacked=0,look=0,seed=0,health=100):
     return f'setup 0 0 {x*65536} {y*65536} {angle} {target} {direction} {mask} {sight} {heard} {ambush} {shadow} {reaction} {count} {threshold} {hit} {attacked} {look} {seed} {health}'

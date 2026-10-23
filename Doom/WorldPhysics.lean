@@ -4,6 +4,7 @@ commit 410d96855b5df5410ff591a90efeafa889119224.
 SPDX-License-Identifier: GPL-2.0-or-later. See COPYING.md.
 -/
 import Doom.PlayerPhysics
+import Doom.PlayerReaction
 import Doom.Slide
 
 namespace Doom.Collision
@@ -29,13 +30,14 @@ structure WorldPhysicsResult where
   crossings : Array Crossing := #[]
   landing : Bool := false
   frictionSample : Option FrictionSample := none
+  onGround : Bool := false
 
 /-- Live player P_XYMovement with real P_TryMove and P_SlideMove. The saved
 split remainder survives a slide, even when the slide changes momentum.
 Uses the same supported actor/callback domain as Scene.tryMove. -/
 def Scene.advancePlayerXY (scene : Scene) (id : Nat) (extra : Motion) (cmd : Ticcmd)
     (sectorAt : SectorAt) (cross : Scene → Crossing → Except String Scene)
-    : Except String WorldPhysicsResult := do
+    (corpse : Bool := false) : Except String WorldPhysicsResult := do
   let some t := scene.things[id]? | throw "physics: missing player"
   let body := t.motion extra
   let steps := body.xySteps
@@ -59,26 +61,35 @@ def Scene.advancePlayerXY (scene : Scene) (id : Nat) (extra : Motion) (cmd : Tic
         crossings := result.crossings ++ slide.crossings }
   let some t := result.scene.things[id]? | throw "physics: callback removed player"
   let before := t.motion result.body
-  let body := before.friction cmd
+  let sectorFloor := result.scene.sectors[t.sector]!.floor
+  let slidingCorpse := corpse && !before.noMomentum &&
+    (before.momx.raw > 16384 || before.momx.raw < -16384 ||
+     before.momy.raw > 16384 || before.momy.raw < -16384) && before.floorz != sectorFloor
+  let body := if slidingCorpse then before else before.friction cmd
   return { result with
     body, frictionSample := some ⟨before, body, cmd⟩,
     scene := { result.scene with things := result.scene.things.set! id (t.withMotion body) } }
 
-/-- Movement part of a live player's tic: command thrust/turn, view calculation,
-XY collision/sliding/friction (including pickup effects), then conditional Z
-movement. Sector actions, reaction time, weapons and animation ticking remain
-separate ports. -/
-def Scene.playerPhysics (scene : Scene) (id : Nat) (extra : Motion) (view : ViewState)
-    (cmd : Ticcmd) (levelTime : Int32) (sectorAt : SectorAt)
-    (cross : Scene → Crossing → Except String Scene) : Except String WorldPhysicsResult := do
+/-- P_PlayerThink's movement preparation: turn/thrust and view calculation.
+This does not change position. Use/fire actions occur after this phase. -/
+def Scene.preparePlayerPhysics (scene : Scene) (id : Nat) (extra : Motion)
+    (view : ViewState) (cmd : Ticcmd) (levelTime : Int32)
+    (reactionTime : Int32 := 0) (cachedOnGround : Bool := false) : Except String WorldPhysicsResult := do
   let some t := scene.things[id]? | throw "physics: missing player"
   if t.moveFlags.floating then throw "physics: floating actor is outside the live-player profile"
   let body := t.motion extra
-  let onGround := body.z.raw ≤ body.floorz.raw
-  let body := body.movePlayer cmd
+  let onGround := if reactionTime = 0 then body.z.raw ≤ body.floorz.raw else cachedOnGround
+  let body := PlayerReaction.move body reactionTime cmd
   let view := view.calcHeight body levelTime onGround
-  let scene := { scene with things := scene.things.set! id (t.withMotion body) }
-  let result ← scene.advancePlayerXY id body cmd sectorAt cross
+  return { scene := { scene with things := scene.things.set! id (t.withMotion body) }, body, view, onGround }
+
+/-- Player mobj thinker: XY collision/sliding/friction (including pickups),
+then conditional Z movement. Command thrust and view calculation have already
+run in PlayerThink, before use/fire and counters. -/
+def Scene.movePlayerPhysics (scene : Scene) (id : Nat) (body : Motion) (view : ViewState)
+    (cmd : Ticcmd) (sectorAt : SectorAt)
+    (cross : Scene → Crossing → Except String Scene) (corpse : Bool := false) : Except String WorldPhysicsResult := do
+  let result ← scene.advancePlayerXY id body cmd sectorAt cross corpse
   let mut result := { result with view }
   if result.body.z != result.body.floorz || result.body.momz.raw != 0 then
     let (body, view, landing) := result.body.moveZ result.view
@@ -87,5 +98,13 @@ def Scene.playerPhysics (scene : Scene) (id : Nat) (extra : Motion) (view : View
       body, view, landing,
       scene := { result.scene with things := result.scene.things.set! id (t.withMotion body) } }
   return result
+
+/-- Composed movement-only entry point for reference fixtures and callers with
+no intervening player actions. Both phases share the live engine's code. -/
+def Scene.playerPhysics (scene : Scene) (id : Nat) (extra : Motion) (view : ViewState)
+    (cmd : Ticcmd) (levelTime : Int32) (sectorAt : SectorAt)
+    (cross : Scene → Crossing → Except String Scene) : Except String WorldPhysicsResult := do
+  let prepared ← scene.preparePlayerPhysics id extra view cmd levelTime
+  prepared.scene.movePlayerPhysics id prepared.body prepared.view cmd sectorAt cross
 
 end Doom.Collision

@@ -1,0 +1,17 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "thingFraction": {
+      "code_offset": "0x2c7ae",
+      "file_offset": "0x6e7c2",
+      "hex": "8b44241489e2893c248974240429f829f589442408b810ba0200896c240ce8fffaffff85c07d0fb801000000",
+      "relocations": [
+        {
+          "offset": 22,
+          "object": 3,
+          "target": "0x2ba10"
+        }
+      ]
+    }
+  }
+}

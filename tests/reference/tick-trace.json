@@ -1,0 +1,32 @@
+{
+  "schema": "leandoom-tic-trace-v5",
+  "repository": "https://github.com/chocolate-doom/chocolate-doom",
+  "commit": "410d96855b5df5410ff591a90efeafa889119224",
+  "archive_sha256": "a25c51c8ad67d43652a051a7cb615a5781f806c1d4d6aca4f87e082c9a656b95",
+  "profile": "DOS 1.9 demo encoding; E1M1; skill 2 (Hurt Me Plenty); player 1 only; no fast/respawn/nomonsters/deathmatch; ordinary buttons and fist/pistol/shotgun selection",
+  "oracle": "Instrumented Chocolate Doom 3.1.1 proxy, not execution of the original DOS binary",
+  "boundary": "Initial state immediately before first P_Ticker; each subsequent record after P_Ticker, ST_Ticker, AM_Ticker and HU_Ticker",
+  "compared": [
+    "levelTime",
+    "rng",
+    "player",
+    "weapon",
+    "sectors",
+    "lineSpecials",
+    "sideOffsets",
+    "actors",
+    "impacts",
+    "enemyBrains",
+    "exitRequested",
+    "projectiles"
+  ],
+  "excluded": [
+    "framebuffer",
+    "audio output/events",
+    "complete actor state, general thinker order, enemies other than imps/zombiemen",
+    "runtime-spawned actors other than puff/blood effects and imp fireballs",
+    "save/load",
+    "intermission",
+    "whole-state or formal equivalence"
+  ]
+}

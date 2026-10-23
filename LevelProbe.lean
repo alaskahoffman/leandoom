@@ -7,11 +7,17 @@ private structure State where
 
 private def run (s : State) (line : String) : Except String (State × String) := do
   let op :: args := (line.splitOn " ").filter (!·.isEmpty) | throw "level: empty command"
-  let args ← args.mapM fun a => do
+  let args ← args.zipIdx |>.mapM fun (a,index) => do
     let some n := a.toInt? | throw "level: invalid integer"
-    if n < -2147483648 || n > 2147483647 then throw "level: integer out of range"
+    -- The damage clock is a Nat; other fields retain their signed-word parser.
+    if !(op == "damage" && index == 4 && n ≥ 0) &&
+        (n < -2147483648 || n > 2147483647) then throw "level: integer out of range"
     pure n
   match op,args with
+  | "damage",[z,floor,special,suit,time,seed] =>
+    let (amount,rng) := floorDamage special.toNat ⟨Int32.ofInt z⟩ ⟨Int32.ofInt floor⟩
+      (suit != 0) time.toNat { play := UInt8.ofNat seed.toNat }
+    return (s,s!"{amount} {rng.play.toNat}")
   | "secret",[z,floor,special,count] =>
     let (special,count) := secret special.toNat ⟨Int32.ofInt z⟩ ⟨Int32.ofInt floor⟩ (Int32.ofInt count)
     return (⟨special,count⟩,s!"{special} {count}")

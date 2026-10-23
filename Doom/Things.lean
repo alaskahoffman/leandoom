@@ -210,6 +210,12 @@ def thingPose (kind tick : Nat) : Option ThingPose := Id.run do
     time := time - pose.ticks
   return none
 
+/-- Passive map objects begin with P_SpawnMapThing's randomized first countdown.
+Later frames use their ordinary durations; no additional RNG is consumed. -/
+def thingSpawnPose (kind tick : Nat) (initialTics : Int32) : Option ThingPose := do
+  let first ← (thingPoses kind)[0]?
+  thingPose kind (tick + first.ticks - initialTics.toInt.toNat)
+
 /-- Built-in switch names use SW1/SW2 paired textures. -/
 def switchPartner (label : String) : Option String :=
   if label.startsWith "SW1" then some ("SW2" ++ (label.drop 3).toString)

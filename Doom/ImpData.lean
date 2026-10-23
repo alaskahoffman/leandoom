@@ -7,6 +7,21 @@ def TBALL2 : Nat := 98
 def TBALLX1 : Nat := 99
 def TBALLX2 : Nat := 100
 def TBALLX3 : Nat := 101
+def POSS_STND : Nat := 174
+def POSS_STND2 : Nat := 175
+def POSS_RUN1 : Nat := 176
+def POSS_RUN2 : Nat := 177
+def POSS_RUN3 : Nat := 178
+def POSS_RUN4 : Nat := 179
+def POSS_RUN5 : Nat := 180
+def POSS_RUN6 : Nat := 181
+def POSS_RUN7 : Nat := 182
+def POSS_RUN8 : Nat := 183
+def POSS_ATK1 : Nat := 184
+def POSS_ATK2 : Nat := 185
+def POSS_ATK3 : Nat := 186
+def POSS_PAIN : Nat := 187
+def POSS_PAIN2 : Nat := 188
 def TROO_STND : Nat := 442
 def TROO_STND2 : Nat := 443
 def TROO_RUN1 : Nat := 444
@@ -28,6 +43,21 @@ def frames : Array Death.Frame := #[
   ⟨99,"S_TBALLX1","BAL1",32770,6,100,"NULL"⟩,
   ⟨100,"S_TBALLX2","BAL1",32771,6,101,"NULL"⟩,
   ⟨101,"S_TBALLX3","BAL1",32772,6,0,"NULL"⟩,
+  ⟨174,"S_POSS_STND","POSS",0,10,175,"A_Look"⟩,
+  ⟨175,"S_POSS_STND2","POSS",1,10,174,"A_Look"⟩,
+  ⟨176,"S_POSS_RUN1","POSS",0,4,177,"A_Chase"⟩,
+  ⟨177,"S_POSS_RUN2","POSS",0,4,178,"A_Chase"⟩,
+  ⟨178,"S_POSS_RUN3","POSS",1,4,179,"A_Chase"⟩,
+  ⟨179,"S_POSS_RUN4","POSS",1,4,180,"A_Chase"⟩,
+  ⟨180,"S_POSS_RUN5","POSS",2,4,181,"A_Chase"⟩,
+  ⟨181,"S_POSS_RUN6","POSS",2,4,182,"A_Chase"⟩,
+  ⟨182,"S_POSS_RUN7","POSS",3,4,183,"A_Chase"⟩,
+  ⟨183,"S_POSS_RUN8","POSS",3,4,176,"A_Chase"⟩,
+  ⟨184,"S_POSS_ATK1","POSS",4,10,185,"A_FaceTarget"⟩,
+  ⟨185,"S_POSS_ATK2","POSS",5,8,186,"A_PosAttack"⟩,
+  ⟨186,"S_POSS_ATK3","POSS",4,8,176,"NULL"⟩,
+  ⟨187,"S_POSS_PAIN","POSS",6,3,188,"NULL"⟩,
+  ⟨188,"S_POSS_PAIN2","POSS",6,3,176,"A_Pain"⟩,
   ⟨442,"S_TROO_STND","TROO",0,10,443,"A_Look"⟩,
   ⟨443,"S_TROO_STND2","TROO",1,10,442,"A_Look"⟩,
   ⟨444,"S_TROO_RUN1","TROO",0,3,445,"A_Chase"⟩,

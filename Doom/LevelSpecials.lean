@@ -6,8 +6,29 @@ SPDX-License-Identifier: GPL-2.0-or-later. See COPYING.md.
 -/
 import Doom.Fixed
 import Doom.Wad
+import Doom.Random
 
 namespace Doom.LevelSpecials
+
+/-- P_PlayerInSpecialSector's ordinary damaging floors (5/7/4/16).
+Use the sector floor, before mobj movement, and the pre-increment level time.
+The leaking-suit RNG draw precedes the 32-tic gate, even on non-damage tics.
+Damage itself (armor, pain/death and its RNG) remains the caller's callback.
+The special-11 finale/god-mode/exit branch is outside this function. -/
+def floorDamage (special : Nat) (z floor : Fixed) (suit : Bool)
+    (levelTime : Nat) (rng : DoomRandom) : Nat × DoomRandom := Id.run do
+  if z != floor then return (0,rng)
+  let mut rng := rng
+  let amount ← match special with
+    | 5 => pure (if suit then 0 else 10)
+    | 7 => pure (if suit then 0 else 5)
+    | 4 | 16 => do
+      if !suit then pure 20 else
+        let (roll,next) := rng.nextPlay
+        rng := next
+        pure (if roll < 5 then 20 else 0)
+    | _ => pure 0
+  return (if levelTime % 32 == 0 then amount else 0,rng)
 
 /-- P_PlayerInSpecialSector case 9. This is sector floor equality, not floorz
 from collision contacts; a player standing on a higher neighboring floor does

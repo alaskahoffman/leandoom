@@ -1,0 +1,27 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "interceptGate": {
+      "code_offset": "0x2c85e",
+      "file_offset": "0x6e872",
+      "hex": "890d28c0020039fa7f1f89d8ff142485c075088b0d28c00200eb138b0d28c00200c703ffffff7febb3",
+      "relocations": [
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 29,
+          "object": 3,
+          "target": "0x2c028"
+        },
+        {
+          "offset": 21,
+          "object": 3,
+          "target": "0x2c028"
+        }
+      ]
+    }
+  }
+}

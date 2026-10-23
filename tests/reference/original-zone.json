@@ -1,0 +1,33 @@
+{
+  "exe_sha256": "b8020523561a5ad9706e009a52d61c578f37faafd85ac471962308406292ce27",
+  "mainzone_offset": "0x74fe0",
+  "error_offset": "0x1ab10",
+  "routines": {
+    "clear": {
+      "offset": "0x39570",
+      "length": 50,
+      "sha256": "971bb3a5185e217d02c06c15ce069724160f42c0ab86f6a844d34ee7f5490c8d"
+    },
+    "free": {
+      "offset": "0x39600",
+      "length": 144,
+      "sha256": "ed641c02e858da3444de0704946e96267d273ae1fa8a9281240354f091dd96ca"
+    },
+    "alloc": {
+      "offset": "0x39690",
+      "length": 230,
+      "sha256": "03094eed6a6bc4bff862b11ae78c90755de7e35bb64a14be7dabcc704607b2f2"
+    },
+    "free_tags": {
+      "offset": "0x39780",
+      "length": 67,
+      "sha256": "7489aa27177ab100d9850f2825950763f4dceed3c12c7046ecef6825d4e9ef96"
+    },
+    "change_tag": {
+      "offset": "0x399b0",
+      "length": 58,
+      "sha256": "88845f5facf91a092ad210264c428aba7673d4f91a0cdfd0d81c437e26f446ff"
+    }
+  },
+  "scope": "32-bit DOS zone allocator; caller-supplied memory and operation sequence, not whole-game allocation ordering. Allocation sizes are nonnegative and alignment/header arithmetic must not overflow signed 32 bits."
+}

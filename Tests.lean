@@ -3,6 +3,8 @@ import Doom.CombatView
 import Doom.Inventory
 import Doom.Actors
 import Doom.Angles
+import Doom.Wipe
+import Doom.DosVideo
 
 open Doom
 
@@ -88,9 +90,23 @@ def main : IO Unit := do
   }
   expect (art.color 0 == ⟨20, 20, 20⟩) "base palette"
   expect (art.color 0 0 1 == ⟨90, 90, 90⟩) "alternate palette"
-  let texture : Texture := ⟨2, 1, ⟨#[255, 3]⟩, ⟨#[1, 0]⟩⟩
+  let texture : Texture := ⟨2, 1, ⟨#[255, 3]⟩, ⟨#[1, 0]⟩,#[],#[],none⟩
   expect (texture.sample (-2) 0 == some 255) "negative texture coordinate wrap"
   expect ((texture.sample 1 0).isNone) "transparent texel"
+  let postArt := { art with colormaps := ⟨(List.range 256).toArray.map UInt8.ofNat⟩ }
+  -- Two legal posts with distinct data/padding. The first lower boundary
+  -- samples row 3 although the post contains only rows 0..2.
+  let postBytes : ByteArray := ⟨#[0,3,0,101,102,103,201,7,3,0,111,112,113,202,255]⟩
+  let postTexture : Texture := { (Texture.empty 1 10) with
+    posts := #[#[(0,3),(7,3)]], columnSources := #[some ⟨postBytes,3,true,none,none⟩] }
+  let drawn := drawPatchColumn {} postArt postTexture 10 0 53792 1234567 79843 (-1) 200 (some 0)
+  expect (drawn.indices[85*320+10]! == 101 && drawn.indices[87*320+10]! == 201)
+    "masked column lower edge reads raw post padding"
+  expect (drawn.indices[91*320+10]! == 111 && drawn.indices[92*320+10]! == 113)
+    "masked column advances over post padding and next header"
+  let clipped := drawPatchColumn {} postArt postTexture 10 0 53792 1234567 79843 89 200 (some 0)
+  expect (clipped.indices[85*320+10]! == 0 && clipped.indices[91*320+10]! == 111)
+    "fully clipped post still advances source pointer"
   let injured : Inventory := { health := 95 }
   expect (((injured.pickup 2011).map (·.1.health)) == some 100) "stimpack heals up to normal cap"
   expect (((({ health := 20 } : Inventory).pickup 2012).map (·.1.health)) == some 45) "medikit heals 25"
@@ -131,13 +147,40 @@ def main : IO Unit := do
   let nextFuzzFrame := fuzzFrame.fuzzPost art 11 10 15
   expect (nextFuzzFrame.phase.val == 3) "fuzz phase persists across posts and wraps"
   expect (nextFuzzFrame.indices.size == 64000 && nextFuzzFrame.rgb.size == 192000) "indexed and RGB buffers retain full frame size"
-  let emptyMap := { tree with nodes := #[], subsectors := #[⟨0,0⟩], segs := #[] }
-  let weapon : Patch := ⟨⟨1,3,⟨#[1,2,3]⟩,⟨#[1,1,1]⟩⟩,-150,-100⟩
+  -- Draw no walls, but retain the sector binding now used by weapon lighting.
+  let emptyMap := { tree with nodes := #[], subsectors := #[⟨0,0⟩] }
+  let oldScreen := ({ } : IndexedFrame).putIndex art 184 69 23 1
+  let retained := renderFrame emptyMap camera (some { art, walls := {}, flats := {}, sky := none })
+    (previous := some oldScreen)
+  expect (retained.indices[69*320+184]! == 23) "unpainted BSP gaps retain prior palette indices"
+  expect (retained.depth[69*320+184]! == 1000000000.0) "presentation history does not retain diagnostic depth"
+  expect ((renderFrame emptyMap camera).indices[69*320+184]! == 0) "fresh exports start without presentation history"
+  let firstPage : ByteArray := ⟨Array.replicate 64000 7⟩
+  let secondPage := firstPage.set! (73*320+85) 11
+  let thirdPage := firstPage.set! (73*320+85) 22
+  let pages := (DosVideo.afterMelt firstPage).present secondPage |>.present thirdPage
+  let restored := pages.restore (thirdPage.set! (180*320) 99)
+  expect (restored[73*320+85]! == 7) "DOS seam reads the third video page, not the previous frame"
+  expect (restored[180*320]! == 99) "DOS page restoration preserves current status bar"
+  let pages := pages.present restored
+  let restored2 := pages.restore restored
+  expect (restored2[73*320+85]! == 11) "DOS page cycling reaches the second image"
+  let pages := pages.present restored2
+  let restored3 := pages.restore restored2
+  expect (restored3[73*320+85]! == 22) "DOS page cycling reaches the third image"
+  let restored4 := (pages.present restored3).restore restored3
+  expect (restored4[73*320+85]! == 7) "unpainted DOS pixels survive repeated page rotations"
+  let weapon : Patch := ⟨⟨1,3,⟨#[1,2,3]⟩,⟨#[1,1,1]⟩,#[],#[],none⟩,-150,-100⟩
   let assets : Assets := {
     art, walls := {}, flats := {}, sky := none, weapons := ({} : Std.HashMap String Patch).insert "PISGA0" weapon }
   let simulation : Simulation := {
     map := emptyMap, original := emptyMap, player := { camera, feet := 0 }, combatEnabled := true,
     inventory := Inventory.fromPickup { powers := #v[0,0,2100,0,0,0], shadow := true } }
+  let flashed := { oldScreen with rgb := Status.toRgb art oldScreen.indices 1 }
+  let .ok restored := ({ simulation with combatEnabled := false } : Simulation).drawIndexedFrame assets none 0 (some flashed)
+    | throw (IO.userError "retained screen presentation failed")
+  expect (restored.indices[69*320+184]! == 23 && restored.rgb[(69*320+184)*3]! == 20)
+    "retained indices use the current palette, not the previous flash RGB"
   let .ok (_, firstPhase) := simulation.drawFrame assets | throw (IO.userError "first fuzz presentation failed")
   let .ok (_, secondPhase) := simulation.drawFrame assets none firstPhase | throw (IO.userError "second fuzz presentation failed")
   expect (firstPhase.val == 3) "weapon presentation advances fuzz phase for visible pixels"
@@ -149,4 +192,33 @@ def main : IO Unit := do
   let persisted : Status.Face := { count := 12, priority := 8, lastAttack := 40, index := 6, oldHealth := 80 }
   let restarted := persisted.start {}
   expect (restarted.count == 12 && restarted.priority == 8 && restarted.lastAttack == 40 && restarted.index == 0 && restarted.oldHealth == -1) "status start preserves original static timers while resetting face and health cache"
-  IO.println "80 arithmetic, BSP, sector bounds, rendering, inventory, animation, and combat checks passed"
+  let solidPatch := fun w h color => ({ image := {
+    (Texture.empty w h) with
+      pixels := ⟨Array.replicate (w*h) color⟩,
+      coverage := ⟨Array.replicate (w*h) 1⟩ }, leftOffset := 0, topOffset := 0 } : Patch)
+  let gray := solidPatch 3 2 60
+  let yellow := { (solidPatch 3 2 43) with
+    image := { (solidPatch 3 2 43).image with coverage := ⟨#[0,1,1,1,1,1]⟩ } }
+  let patches : Std.HashMap String Patch := ({} : Std.HashMap String Patch)
+    |>.insert "STBAR" (solidPatch 320 32 10)
+    |>.insert "STARMS" (solidPatch 39 32 11)
+    |>.insert "STGNUM3" gray |>.insert "STYSNUM3" yellow
+  let player : Pickup.State := {}
+  let (first,widgets) := Status.drawWithHistory ({} : IndexedFrame).indices patches player {}
+  let armed := { player with weapons := player.weapons.set 2 true }
+  let (picked,nextWidgets) := Status.drawWithHistory first patches armed {} (some widgets)
+  expect (first[172*320+123]! == 60 && picked[172*320+123]! == 10 && picked[172*320+124]! == 43)
+    "weapon widget clears old rectangle from STBAR, not STARMS"
+  let (unchanged,_) := Status.drawWithHistory picked patches armed {} (some nextWidgets)
+  expect (unchanged == picked) "unchanged multi-icons retain incremental pixels"
+  let fresh := Status.draw ({} : IndexedFrame).indices patches armed {}
+  expect (fresh[172*320+123]! == 11) "fresh status refresh has distinct backing history"
+  let wipeRng : DoomRandom := { play := 123, misc := 250 }
+  let (delays, afterWipe) := Wipe.initialDelays 320 wipeRng
+  expect (afterWipe.play == 123 && afterWipe.misc == 58)
+    "320 melt initialization draws wrap cosmetic RNG without advancing gameplay RNG"
+  expect (delays.size == 320 && delays.all (fun y => y >= -15 && y <= 0))
+    "melt initialization retains original bounded column delays"
+  expect (Wipe.initialDelays 0 wipeRng == (#[], wipeRng))
+    "empty melt initialization consumes no random values"
+  IO.println "98 arithmetic, BSP, sector bounds, rendering, inventory, animation, and combat checks passed"

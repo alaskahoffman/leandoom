@@ -6,6 +6,10 @@ package «lean-doom» where
 
 lean_lib Doom
 
+-- Pinned, unmodified core from the HITrees paper's Lean development.
+lean_lib HITrees where
+  srcDir := "vendor/hitrees/src"
+
 @[default_target]
 lean_exe «lean-doom» where
   root := `Main
@@ -89,3 +93,33 @@ lean_exe «weapon-probe» where
 
 lean_exe «demo-probe» where
   root := `DemoProbe
+
+lean_exe «trace-probe» where
+  root := `TraceProbe
+
+lean_exe «render-probe» where
+  root := `RenderProbe
+
+lean_exe «impact-probe» where
+  root := `ImpactProbe
+
+lean_exe «player-damage-probe» where
+  root := `PlayerDamageProbe
+
+lean_exe «monster-motion-probe» where
+  root := `MonsterMotionProbe
+
+lean_exe «live-render-probe» where
+  root := `LiveRenderProbe
+
+lean_exe «dos-memory-probe» where
+  root := `DosMemoryProbe
+
+lean_exe «dos-startup-probe» where
+  root := `DosStartupProbe
+
+lean_exe «initialized-e1m1-probe» where
+  root := `InitializedE1M1Probe
+
+lean_exe «initialized-scene-probe» where
+  root := `InitializedSceneProbe

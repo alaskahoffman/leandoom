@@ -1,0 +1,23 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "group": {
+      "code_offset": "0x2e661",
+      "file_offset": "0x70675",
+      "hex": "31ff8b0d20c102008b1d34c1020089755285db7e393b692e74053b69327522890e",
+      "relocations": [
+        {
+          "offset": 10,
+          "object": 3,
+          "target": "0x2c134"
+        },
+        {
+          "offset": 4,
+          "object": 3,
+          "target": "0x2c120"
+        }
+      ]
+    }
+  },
+  "scope": "P_GroupLines per-sector line-array publication, signed line-count gate, front/back membership branches and first pointer store. Stops before bounding-box preparation/calls or at the skip/empty continuation. No complete scan, allocation, count-building pass, bounding-box calls or startup reachability."
+}

@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "count": {
+      "code_offset": "0x2e5ef",
+      "file_offset": "0x70603",
+      "hex": "a120c102008b3d34c1020031d231f685ff7e298b582eff434e8b78324285ff740d3b782e74088b4f4e4142894f4e8b2d34c102004683c03e39ee7cd78d04950000000031dbba32000000",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2c120"
+        },
+        {
+          "offset": 7,
+          "object": 3,
+          "target": "0x2c134"
+        },
+        {
+          "offset": 48,
+          "object": 3,
+          "target": "0x2c134"
+        }
+      ]
+    }
+  },
+  "scope": "P_GroupLines line-count gate, iteration, backedge and allocation argument preparation. Stops before Z_Malloc at 0x2e639. Flat data-relative x86; startup reachability, zero initial counters and allocation remain separate obligations."
+}

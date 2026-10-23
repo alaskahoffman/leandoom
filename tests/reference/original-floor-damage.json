@@ -1,0 +1,139 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "sectorEntryBytes": {
+      "code_offset": "0x2fb20",
+      "file_offset": "0x71b34",
+      "hex": "5351525689c68b008b48348b098b50143b110f8501010000668b510e83ea046683fa0c0f87de00000081e2ffff00002eff2495ecfa0200",
+      "relocations": [
+        {
+          "offset": 51,
+          "object": 1,
+          "target": "0x2faec"
+        }
+      ]
+    },
+    "sectorTableBytes": {
+      "code_offset": "0x2faec",
+      "file_offset": "0x71b00",
+      "hex": "aafb020057fb020027fc020080fb020027fc0200dcfb020027fc0200edfb020027fc020027fc020027fc020027fc0200aafb0200",
+      "relocations": [
+        {
+          "offset": 48,
+          "object": 1,
+          "target": "0x2fbaa"
+        },
+        {
+          "offset": 44,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 40,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 36,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 32,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 28,
+          "object": 1,
+          "target": "0x2fbed"
+        },
+        {
+          "offset": 24,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 20,
+          "object": 1,
+          "target": "0x2fbdc"
+        },
+        {
+          "offset": 16,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2fb80"
+        },
+        {
+          "offset": 8,
+          "object": 1,
+          "target": "0x2fc27"
+        },
+        {
+          "offset": 4,
+          "object": 1,
+          "target": "0x2fb57"
+        },
+        {
+          "offset": 0,
+          "object": 1,
+          "target": "0x2fbaa"
+        }
+      ]
+    },
+    "floorDamageBytes": {
+      "code_offset": "0x2fb57",
+      "file_offset": "0x71b6b",
+      "hex": "8b563885d20f85d7000000f60580cf02001f0f85ca000000b90a00000031dbe8e5a8ffff5e5a595bc3837e38000f85af000000f60580cf02001f0f85a2000000b90500000031d231dbe8bba8ffff5e5a595bc3837e3800740ee8ab45ffff83f8050f8d7b000000f60580cf02001f7572b9140000008b0631d231dbe889a8ffff5e5a595bc3",
+      "relocations": [
+        {
+          "offset": 105,
+          "object": 3,
+          "target": "0x2cf80"
+        },
+        {
+          "offset": 53,
+          "object": 3,
+          "target": "0x2cf80"
+        },
+        {
+          "offset": 13,
+          "object": 3,
+          "target": "0x2cf80"
+        }
+      ]
+    },
+    "playRandomBytes": {
+      "code_offset": "0x24160",
+      "file_offset": "0x66174",
+      "hex": "a1202701004025ff000000a3202701008a801c26010025ff000000c3",
+      "relocations": [
+        {
+          "offset": 18,
+          "object": 3,
+          "target": "0x1261c"
+        },
+        {
+          "offset": 12,
+          "object": 3,
+          "target": "0x12720"
+        },
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x12720"
+        }
+      ]
+    },
+    "sectorCallerBytes": {
+      "code_offset": "0x333d0",
+      "file_offset": "0x753e4",
+      "hex": "8b028b40348b006683780e00740789d0e83bc7ffff",
+      "relocations": []
+    }
+  }
+}

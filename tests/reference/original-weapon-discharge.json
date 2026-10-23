@@ -1,0 +1,69 @@
+{
+  "title": "DOOM shareware 1.9: pistol/shotgun discharge through autoaim call",
+  "exe_profile": "original-mul.json",
+  "units": {
+    "pistol": {
+      "code_offset": "0x2d890",
+      "file_offset": "0x6f8a4",
+      "hex": "535189c1ba010000008b00e8d01a0100ba9b0000008b01e8f43500008b51708d04950000000029d08b04c5902d0100ff8c819c0000008b51708d04950000000029d0ba010000008b1cc5a42d010089c8e85bf7ffff8b01e8d4feffff",
+      "relocations": [
+        {
+          "offset": 43,
+          "object": 3,
+          "target": "0x12d90"
+        },
+        {
+          "offset": 74,
+          "object": 3,
+          "target": "0x12da4"
+        }
+      ]
+    },
+    "shotgun": {
+      "code_offset": "0x2d910",
+      "file_offset": "0x6f924",
+      "hex": "53515689c1ba020000008b00e84f1a0100ba9b0000008b01e8733500008b59708d049d0000000029d88b04c5902d0100ff8c819c0000008b59708d049d0000000029d8ba010000008b1cc5a42d010089c8e8daf6ffff8b01e853feffff",
+      "relocations": [
+        {
+          "offset": 44,
+          "object": 3,
+          "target": "0x12d90"
+        },
+        {
+          "offset": 75,
+          "object": 3,
+          "target": "0x12da4"
+        }
+      ]
+    }
+  },
+  "data": {
+    "pistol": {
+      "offset": "0x15bb0",
+      "hex": "03000000010000000600000090d802000f0000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d890"
+        }
+      ]
+    },
+    "shotgun": {
+      "offset": "0x15c90",
+      "hex": "01000000000000000700000010d90200170000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d910"
+        }
+      ]
+    },
+    "weapons": {
+      "offset": "0x12d90",
+      "hex": "050000000400000003000000020000000500000000000000000000000c0000000b0000000a0000000d0000001100000001000000140000001300000012000000150000001e000000",
+      "relocations": []
+    }
+  }
+}

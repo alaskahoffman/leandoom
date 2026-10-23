@@ -1,0 +1,42 @@
+{
+  "exe_profile": "original-mul.json",
+  "states": [
+    {
+      "index": 3,
+      "offset": "0x15a7c",
+      "hex": "02000000000000000100000090d40200030000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "offset": "0x15b5c",
+      "hex": "03000000000000000100000090d402000b0000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "offset": "0x15c3c",
+      "hex": "01000000000000000100000090d40200130000000000000000000000",
+      "relocations": [
+        {
+          "offset": 12,
+          "object": 1,
+          "target": "0x2d490"
+        }
+      ]
+    }
+  ],
+  "scope": "Original A_Lower in-progress branch (live or dead), with supported empty-ammo firing joined through lowering callback, setter return, ammo return and fire return. Explicit inventory, intermediate-height and return contracts; bottom-of-lowering weapon switch and reachable-state invariants remain separate."
+}

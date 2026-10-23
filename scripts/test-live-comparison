@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+./scripts/lake build live-render-probe
+exec python3 tests/integration_live_compare.py

@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+exec python3 scripts/verify_e1m1_death_timing.py "$@"

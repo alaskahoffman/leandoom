@@ -23,9 +23,10 @@ class DoorKernelTests(unittest.TestCase):
         for case in doors_reference.runtime_cases():
             special,_,ceiling,_,_=case
             geom=door_room(special) if special in (1,31,118) else switch_room(special,open_door=ceiling==124)
-            for tic in (0,1,17,18,69,70,71,150,220,221,222,291,292,300):
+            for tic in (0,1,17,18,69,70,71,150,220,221,222,291,292,299):
                 with self.subTest(special=special,tic=tic):
-                    fields,events=golden[cursor+tic].split(' /')
+                    # The activation tic already executes the new thinker.
+                    fields,events=golden[cursor+tic+1].split(' /')
                     _,_,floor,ceiling,speed,top,direction,wait,count,removed,busy=fields.split()
                     result=self.state(geom,f'1:4096,{tic}:0')
                     self.assertEqual(result['ceilings'][1]*65536,int(ceiling))
@@ -39,7 +40,7 @@ class DoorKernelTests(unittest.TestCase):
 
     def test_fast_door_reversal_requests_ordinary_open_sound(self):
         geom=switch_room(111,extras=[(110,0,0,3004,7)])
-        result=self.state(geom,'1:4096,179:0')
+        result=self.state(geom,'1:4096,178:0')
         self.assertEqual(result['ceilings'][1],44)
         self.assertEqual(result['doors'][0]['direction'],1)
         self.assertEqual([s['sound'].split('.')[-1] for s in result['doorSounds']],['open'])

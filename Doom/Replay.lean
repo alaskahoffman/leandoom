@@ -39,6 +39,7 @@ private def deathJson (body : Option Death.Body) : Json :=
 
 def Simulation.json (s : Simulation) : Json := Json.mkObj [
   ("ticks", toJson s.ticks),
+  ("hudMessage",toJson s.hudMessage), ("hudMessageTicks",toJson s.hudMessageTicks),
   ("audioEvents",toJson (s.audioEvents.map fun e => Json.mkObj [("name",toJson e.name),("origin",toJson (reprStr e.origin)),("x",fixedJson e.position.x),("y",fixedJson e.position.y)])),
   ("secrets", toJson s.secrets.toInt), ("totalSecrets", toJson s.totalSecrets.toInt),
   ("exitRequested", toJson s.exitRequested), ("secretExit", toJson false),
@@ -47,6 +48,10 @@ def Simulation.json (s : Simulation) : Json := Json.mkObj [
   ("impEvents",toJson (s.impEvents.map fun (id,e) => s!"{id}: {reprStr e}")),
   ("projectileEvents",toJson (s.projectileEvents.map fun (id,e) => s!"{id}: {reprStr e}")),
   ("soundTargets",toJson s.soundTargets),
+  ("impacts",toJson (s.impacts.map fun p => Json.mkObj [
+    ("x",fixedJson p.motion.x),("y",fixedJson p.motion.y),("z",fixedJson p.motion.z),
+    ("momz",fixedJson p.motion.momz),("state",toJson p.frame),
+    ("tics",toJson p.tics.toInt),("lastlook",toJson p.lastlook)])),
   ("projectiles",toJson (s.projectiles.map fun p => Json.mkObj [
     ("source",toJson (Int.ofNat p.source-1)), ("x",fixedJson p.motion.x), ("y",fixedJson p.motion.y), ("z",fixedJson p.motion.z),
     ("momx",fixedJson p.motion.momx), ("momy",fixedJson p.motion.momy), ("momz",fixedJson p.motion.momz),

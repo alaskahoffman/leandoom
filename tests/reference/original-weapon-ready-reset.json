@@ -1,0 +1,9 @@
+{
+  "exe_profile": "original-mul.json",
+  "state": {
+    "index": 149,
+    "offset": "0x16a74",
+    "hex": "1c00000000000000ffffffff00000000000000000000000000000000"
+  },
+  "scope": "S_PLAY pose reset through the original actor setter and its real return to A_WeaponReady."
+}

@@ -1,0 +1,645 @@
+{
+  "schema": "leandoom-original-tic-trace-v6",
+  "emulator": {
+    "repository": "https://github.com/joncampbell123/dosbox-x",
+    "commit": "e013b8bf8e27ef878a646049bf5b2e732878d616",
+    "archive_sha256": "19ef3d932daef7581777c68dfced969426399680dd721595cc1157df1020dc75"
+  },
+  "exe_profile": "original-mul.json",
+  "before": "0x2081a",
+  "after": "0x2082e",
+  "signature_hex": "e841270100e8bc9b0100e8a74e0000e8a2ae0100eb13",
+  "data_operands": {
+    "0x24161": "0x12720",
+    "0x24181": "0x1271c",
+    "0x32f64": "0x2b408",
+    "0x32fad": "0x2ae78",
+    "0x32fe2": "0x2cf80",
+    "0x32f14": "0x2cf78",
+    "0x32f1a": "0x2cf74",
+    "0x315d9": "0x15a28",
+    "0x2d062": "0x15a28",
+    "0x20d4b": "0x2b2f8",
+    "0x20d51": "0x2b404"
+  },
+  "code_evidence": {
+    "P_Ticker": {
+      "code_offset": "0x32f60",
+      "hex": "5352833d08b40200000f8577000000833d00b40200007534833dccb6020000742b833de4b302000075228b1ddcb302008d14dd0000000001da8d14950000000029da833cd588ae020001753abb78ae020031d283bad8b2020000740789d8e89d03000083c20481c31801000083fa1075e2e83affffffe865ccffffe810e7ffffff0580cf02005a5bc3"
+    },
+    "P_MovePlayer": {
+      "code_offset": "0x33160",
+      "hex": "53515256575583ec0489c18d70080fbf5e028b00c1e3100158208b018b58143b58380f9ec025ff0000008a16a390cf020084d2744c85c074488b298b45208b1d84350100c1e8130fbefa8d048500000000c1e70b01c389042489f88b1bf7eb0facd0108b554801c28b1c2489554889f88b9b845a00008b29f7eb0facd01001454c8a760184f67456833d90cf020000744d8b298b45202d000000408b1d84350100c1e8130fbefe8d048500000000c1e7"
+    },
+    "P_PlayerThink_start": {
+      "code_offset": "0x33360",
+      "hex": "53515256575589c2f680c40000000174088b0280486910eb068b02806069ef8b028a48688d5a08f6"
+    },
+    "P_RunThinkers": {
+      "code_offset": "0x32f10",
+      "hex": "53528b1578cf020081fa74cf020074348b5a0883fbff75188b5a048b02890389c38b420489430489d0e8c2660000eb0985db740589d0ff52088b520481fa74cf020075cc5a5bc3"
+    },
+    "P_MobjThinker_countdown": {
+      "code_offset": "0x314d4",
+      "hex": "8b5a6083fbff741e8d6bff896a6085ed754c8b5a648b5b1089d089dae8abf9ffff5d5e5a5bc3"
+    },
+    "P_SpawnMobj": {
+      "code_offset": "0x31540",
+      "hex": "56575583ec088944240489142489df89cdb89a000000ba3200000031dbe82e810000bb9a00000089c631d289c1e8fee800006bdd5c8b542404896e5889560c8b142489561081c3ecc30100895e5c8b53408956408b53448956448b53548956688b530889566c833de0b302000474068b531489567ce8a62bffff89c2be04000000c1fa1ff7fe8991880000008b53048d34d50000000029d6ba285a01008d34b50000000001f28951648b5a088959608b1a8959248b520489c8895128e85faeffff8b51348b128b128951388b51348b128b520489513c81ff0000008075088b5138895114eb1881ffffffff7f750d8b595c8b734429f2895114eb0389791489c8c7410890140300e88418000089c883c4085d5f5ec3"
+    },
+    "A_Chase": {
+      "code_offset": "0x27790",
+      "hex": "53515256575589c38b507c85d274068d4aff89487c8bb38000000085f674228b7b7885ff7406837f6c007f0cc7838000000000000000eb098d46ff898380000000837b70087d2d8b4b208b437081e1000000e0c1e01d89ca29c2894b2089d085d27e0b8db1000000e0897320eb067d04804323208b7b7885ff7406f64768047526ba0100000089d8e853fdffff85c00f85380100008b535c89d88b5204e86e960000e9260100008a7368f6c680743288f580e57f8b2de0b30200886b6883fd040f8407010000833dc4a30200000f85fa00000089d8e896faffff5d5f5e5a595bc38b435c83782800743289d8e8bff7ffff85c074278b535c8b7a1885ff740989fa89d8e8d87a01008b535c89d88b5228e8fb9500005d5f5e5a595bc38b435c83782c00743b833de0b30200047d0f833dc4a30200007506837b7400752389d8e8ccf7ffff85c074188b535c89d88b522ce8bb950000804b68805d5f5e5a595bc3833d00b4020000742783bb8000000000751e89d88b5378e85474000085c07510ba0100000089d8e854fcffff85c0753d8b53744a89537485d27c0b89d8e86ef8ffff85c0750789d8e8c3f9ffff8b435c837850007417e815c8ffff83f8037d0d8b535c89d88b5250e8137a01005d5f5e"
+    },
+    "P_SpawnMapThing_spawnpoint": {
+      "code_offset": "0x31a88",
+      "hex": "e8b3faffff89c389ee8dbb8c000000a5a566a589c1837860007e13"
+    },
+    "P_MobjThinker_motion": {
+      "code_offset": "0x31490",
+      "hex": "5352565589c283784800750c83784c007506f6406b01741189d0e8b1faffff837a08ff0f84790000008b42143b42387506837a5000740d89d0e822fdffff837a08ff745e"
+    },
+    "P_DamageMobj_player": {
+      "code_offset": "0x2a460",
+      "hex": "56575583ec0c89c6891424895c240489cff64068040f84cc020000837e6c000f8ec2020000f6466b017410c74650000000008b465089464c8946488bae8400000085ed740b833de0b30200007502d1ff833c24000f84de000000f64669100f85d40000008b44240485c074148b908400000085d2740a837a70070f84b80000008b14248b04248b4e108b5e0c8b52108b400ce849b2000089c38d04bd0000000029f88d04c5000000008d1407c1e20f8b4e5c89d0c1fa1ff7794889c183ff287d363b7e6c7e318b4614894424088b04248b5424088b401429c281fa000040007e16e81a9cffffa801740d8d0c8d0000000081c300000080c1eb138d1c9d00000000895c24088b4424088b1d8435010001c389c88b1bf7eb0facd0108b564801c28b5c240889564889c88b9b845a0000f7eb0facd01001464c85ed0f84fa0000008b46348b006683780e0b750a8b4e6c39cf7c038d79ff81ffe80300007d17f685c4000000020f857c010000837d2c000f85720100008b552885d2743a83fa017510bb0300000089fa89f8c1fa1ff7fbeb0b89fa89f8c1fa1f2bc2d1f88b4d2439c87c0989c8c74528000000008b552429c229c78955248b5d2029fb895d2085db7d07c74520000000008b4424048985e40000008b85dc00000001f88985dc00000083f8647e0ac785dc0000006400000083ff647d0489fbeb"
+    },
+    "P_SetPsprite": {
+      "code_offset": "0x2d040",
+      "hex": "515689c689d8c1e2048d9ef400000001d385c07509c703000000005e59c36bc01cb9285a010001c1890b8b41088943048b511485d2741189d0c1e0108943088b4118c1e01089430c83790c00740c89f089daff510c833b0074128b038b53048b401085d2750685c074abebb25e59c3"
+    },
+    "P_MovePsprites": {
+      "code_offset": "0x2dc60",
+      "hex": "535152565789c78d88f400000031f68b1985db74208b510483faff74188d5aff89590485db750e8b1989f889f28b5b10e8abf3ffff4683c11083fe027cd18b9ffc000000899f0c0100008b9f00010000899f100100005f5e5a595bc3"
+    },
+    "A_Light012": {
+      "code_offset": "0x2db40",
+      "hex": "c780e800000000000000c38d40008bc9c780e800000001000000c38d40008bc9c780e800000002000000c3"
+    },
+    "P_PlayerThink_weapon_change": {
+      "code_offset": "0x3340b",
+      "hex": "83ba9400000000741e837a70077506837a30007507b901000000eb0231c985c97405b807000000833dbca3020000741983f802751483ba9800000000740b837a70087405b808000000837c827800741b3b4270741683f805740583f8067509833daca30200007503894274"
+    },
+    "P_PlayerInSpecialSector_secret": {
+      "code_offset": "0x2fbdc",
+      "hex": "ff86d400000066c7410e0000"
+    },
+    "P_CheckAmmo_ammo_test": {
+      "code_offset": "0x2d170",
+      "hex": "ffff5a595bc383fa087507ba02000000eb05ba0100000083fb0574093b94989c0000007f0ab8010000005e5a595bc331d2bb020000003b908c000000741c3b90"
+    },
+    "P_BringUpWeapon": {
+      "code_offset": "0x2d120",
+      "hex": "53515289c38378740a75068b4070894374837b7407750cba0a0000008b03e82d2201008b53748d04950000000029d08b0cc5942d010031d2c743740a00000089d8c783000100000000800089cbe8cefeffff5a595bc3"
+    },
+    "A_TroopAttack_missile": {
+      "code_offset": "0x27c67",
+      "hex": "bb1f000000e8ef9f0000"
+    },
+    "P_SpawnMissile": {
+      "code_offset": "0x31c60",
+      "hex": "5156575589c789d589d98b58148b501081c3000020008b400ce8c2f8ffff8b585c89c28b4b1089c685c9740789cae8ddd60000897e788b4d108b5d0c8b57108b470ce8993a00008a5d6a89c2f6c3047415e8aa24ffff89c3e8a324ffff29c389d8c1e01401d0894620c1e8138b1d843501008d0c85000000008b465c8b1c198b403cf7eb0facd0108946488b465c8b99845a00008b403cf7eb0facd01089464c8b45102b47108b5f0c89c28b450c29d8e8cba2ffff89c28b5e5cc1fa1f8b4b3cf7f989c383f8017d05bb010000008b55148b6f1429ea89d0c1fa1ff7fb89465089f0e8a9feffff89f05d5f5e59c3"
+    },
+    "P_ExplodeMissile": {
+      "code_offset": "0x30f00",
+      "hex": "5352565589c3c74050000000006b53585c8b405089434c89434889d88b921cc40100e879ffffffe83432ffff83e0038b736029c689736083fe017d07c743600100000080636afe8b435c8b683885ed740989ea89d8e816e400005d5e5a5bc3"
+    },
+    "G_ExitLevel": {
+      "code_offset": "0x20d40",
+      "hex": "535231d2bb060000008915f8b20200891d04b402005a5bc3"
+    }
+  },
+  "player_offset": "0x2ae78",
+  "player_mobj_offset": 0,
+  "command_offsets": {
+    "forward": 8,
+    "side": 9,
+    "angle": 10,
+    "buttons": 15
+  },
+  "mobj_offsets": {
+    "x": 12,
+    "y": 16,
+    "z": 20,
+    "momx": 72,
+    "momy": 76,
+    "momz": 80,
+    "angle": 32
+  },
+  "compared": [
+    "levelTime",
+    "rng.play",
+    "rng.misc",
+    "player.x",
+    "player.y",
+    "player.z",
+    "player.momx",
+    "player.momy",
+    "player.momz",
+    "player.angle",
+    "enemyBrains",
+    "player.health",
+    "player.armor",
+    "player.armorType",
+    "player.readyWeapon",
+    "player.pendingWeapon",
+    "player.ammo",
+    "player.secrets",
+    "weapon",
+    "projectiles",
+    "exitRequested"
+  ],
+  "excluded": [
+    "all unlisted player/world/actor/weapon fields",
+    "framebuffer",
+    "audio",
+    "other maps and game modes",
+    "whole-state or formal equivalence"
+  ],
+  "code_operands": {
+    "0x31643": "0x31490"
+  },
+  "enemy_offsets": {
+    "type": 88,
+    "state": 100,
+    "tics": 96,
+    "angle": 32,
+    "movedir": 112,
+    "movecount": 116,
+    "reaction": 124,
+    "threshold": 128,
+    "lastlook": 136,
+    "target": 120,
+    "behaviorFlags": 104,
+    "spawnpoint": 140,
+    "x": 12,
+    "y": 16,
+    "z": 20,
+    "momx": 72,
+    "momy": 76,
+    "momz": 80,
+    "health": 108
+  },
+  "enemy_profile": [
+    {
+      "id": 8,
+      "spawn": [
+        3440,
+        -3472,
+        135,
+        3001,
+        15
+      ],
+      "type": 11
+    },
+    {
+      "id": 10,
+      "spawn": [
+        2912,
+        -2816,
+        90,
+        3004,
+        15
+      ],
+      "type": 1
+    },
+    {
+      "id": 11,
+      "spawn": [
+        3056,
+        -3584,
+        90,
+        3004,
+        14
+      ],
+      "type": 1
+    },
+    {
+      "id": 16,
+      "spawn": [
+        3008,
+        -4416,
+        90,
+        3001,
+        15
+      ],
+      "type": 11
+    },
+    {
+      "id": 87,
+      "spawn": [
+        2272,
+        -2432,
+        180,
+        3004,
+        15
+      ],
+      "type": 1
+    },
+    {
+      "id": 88,
+      "spawn": [
+        2272,
+        -2352,
+        180,
+        3004,
+        14
+      ],
+      "type": 1
+    }
+  ],
+  "enemy_state_table": {
+    "data_offset": "0x15a28",
+    "stride": 28,
+    "count": 967
+  },
+  "enemy_scope": "Original-map imps/zombiemen, identities bound by exact spawnpoint tuples at tic zero; targets restricted to player 0 and these six original enemies; no respawn.",
+  "enemy_offset_evidence": {
+    "type": {
+      "code_offset": "0x31579",
+      "hex": "896e58",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "state": {
+      "code_offset": "0x314e6",
+      "hex": "8b5a64",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "tics": {
+      "code_offset": "0x314d4",
+      "hex": "8b5a60",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "angle": {
+      "code_offset": "0x277d7",
+      "hex": "8b4b20",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "movedir": {
+      "code_offset": "0x277d1",
+      "hex": "837b7008",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "movecount": {
+      "code_offset": "0x27920",
+      "hex": "8b5374",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "reaction": {
+      "code_offset": "0x27798",
+      "hex": "8b507c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "threshold": {
+      "code_offset": "0x277a5",
+      "hex": "8bb380000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4
+    },
+    "lastlook": {
+      "code_offset": "0x315c6",
+      "hex": "899188000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4
+    },
+    "target": {
+      "code_offset": "0x277af",
+      "hex": "8b7b78",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "behaviorFlags": {
+      "code_offset": "0x3159d",
+      "hex": "895668",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "spawnpoint": {
+      "code_offset": "0x31a91",
+      "hex": "8dbb8c000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4
+    },
+    "x": {
+      "code_offset": "0x3157c",
+      "hex": "89560c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "y": {
+      "code_offset": "0x31582",
+      "hex": "895610",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "z": {
+      "code_offset": "0x3163b",
+      "hex": "897914",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momx": {
+      "code_offset": "0x31496",
+      "hex": "83784800",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momy": {
+      "code_offset": "0x3149c",
+      "hex": "83784c00",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momz": {
+      "code_offset": "0x314c1",
+      "hex": "837a5000",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "health": {
+      "code_offset": "0x315a3",
+      "hex": "89566c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    }
+  },
+  "player_offsets": {
+    "health": 32,
+    "armor": 36,
+    "armorType": 40,
+    "readyWeapon": 112,
+    "pendingWeapon": 116,
+    "ammo": 156,
+    "secrets": 212,
+    "refire": 200,
+    "extraLight": 232,
+    "psprites": 244
+  },
+  "player_offset_evidence": {
+    "health": {
+      "code_offset": "0x2a616",
+      "hex": "8b5d20",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_DamageMobj: player health read before subtracting damage; EBP is target->player."
+    },
+    "armor": {
+      "code_offset": "0x2a5fc",
+      "hex": "8b4d24",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_DamageMobj: player armorpoints bounds the saved damage."
+    },
+    "armorType": {
+      "code_offset": "0x2a5d5",
+      "hex": "8b5528",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_DamageMobj: player armortype chooses damage absorption."
+    },
+    "readyWeapon": {
+      "code_offset": "0x33414",
+      "hex": "837a7007",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_PlayerThink: readyweapon chainsaw comparison."
+    },
+    "pendingWeapon": {
+      "code_offset": "0x33473",
+      "hex": "894274",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_PlayerThink: accepted command writes pendingweapon."
+    },
+    "ammo": {
+      "code_offset": "0x2d18c",
+      "hex": "3b94989c000000",
+      "displacement_offset": 3,
+      "displacement_bytes": 4,
+      "meaning": "P_CheckAmmo: ammo[weaponinfo[readyweapon].ammo], SIB scale four."
+    },
+    "secrets": {
+      "code_offset": "0x2fbdc",
+      "hex": "ff86d4000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4,
+      "meaning": "P_PlayerInSpecialSector: case 9 increments secretcount."
+    },
+    "refire": {
+      "code_offset": "0x2d402",
+      "hex": "ff80c8000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4,
+      "meaning": "A_ReFire: increment refire when attack is held, no switch and health positive."
+    },
+    "extraLight": {
+      "code_offset": "0x2db50",
+      "hex": "c780e800000001000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4,
+      "meaning": "A_Light1 writes extralight=1; adjacent Light0/Light2 confirm."
+    },
+    "psprites": {
+      "code_offset": "0x2dc67",
+      "hex": "8d88f4000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4,
+      "meaning": "P_MovePsprites: address of first psprite; loop advances by 16, twice."
+    }
+  },
+  "psprite_offsets": {
+    "state": 0,
+    "tics": 4,
+    "x": 8,
+    "y": 12
+  },
+  "psprite_offset_evidence": {
+    "state": {
+      "code_offset": "0x2d068",
+      "hex": "890b",
+      "displacement_offset": 2,
+      "displacement_bytes": 0,
+      "meaning": "P_SetPsprite: state pointer at psprite base, no displacement encoding."
+    },
+    "tics": {
+      "code_offset": "0x2d06d",
+      "hex": "894304",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_SetPsprite: stores states[stnum].tics."
+    },
+    "x": {
+      "code_offset": "0x2d07c",
+      "hex": "894308",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_SetPsprite: stores misc1 shifted by FRACBITS."
+    },
+    "y": {
+      "code_offset": "0x2d085",
+      "hex": "89430c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1,
+      "meaning": "P_SetPsprite: stores misc2 shifted by FRACBITS."
+    }
+  },
+  "player_layout": {
+    "ammo_count": 4,
+    "ammo_stride": 4,
+    "psprite_count": 2,
+    "psprite_stride": 16,
+    "no_pending_weapon": 10,
+    "mobj_player_offset": 132,
+    "weapon_count": 9
+  },
+  "player_scope": "Player 1 health, armor, four ammo counts, ready/pending weapons and secret count; both psprite states/countdowns, weapon XY, refire and extra light. Player/mobj backlink checked. No player death-state, powers, ownership array, max ammo or projectile observation.",
+  "layout_value_evidence": {
+    "no_pending_weapon": {
+      "code_offset": "0x2d125",
+      "hex": "8378740a",
+      "value_offset": 3,
+      "value_bytes": 1
+    },
+    "psprite_count": {
+      "code_offset": "0x2dc99",
+      "hex": "83fe02",
+      "value_offset": 2,
+      "value_bytes": 1
+    },
+    "psprite_stride": {
+      "code_offset": "0x2dc96",
+      "hex": "83c110",
+      "value_offset": 2,
+      "value_bytes": 1
+    },
+    "mobj_player_offset": {
+      "code_offset": "0x2a49b",
+      "hex": "8bae84000000",
+      "value_offset": 2,
+      "value_bytes": 4
+    }
+  },
+  "projectile_offsets": {
+    "type": 88,
+    "x": 12,
+    "y": 16,
+    "z": 20,
+    "momx": 72,
+    "momy": 76,
+    "momz": 80,
+    "angle": 32,
+    "state": 100,
+    "tics": 96,
+    "lastlook": 136,
+    "floor": 56,
+    "ceiling": 60,
+    "source": 120,
+    "flags": 104
+  },
+  "projectile_offset_evidence": {
+    "type": {
+      "code_offset": "0x31579",
+      "hex": "896e58",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "x": {
+      "code_offset": "0x3157c",
+      "hex": "89560c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "y": {
+      "code_offset": "0x31582",
+      "hex": "895610",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "z": {
+      "code_offset": "0x3163b",
+      "hex": "897914",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momx": {
+      "code_offset": "0x31496",
+      "hex": "83784800",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momy": {
+      "code_offset": "0x3149c",
+      "hex": "83784c00",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "momz": {
+      "code_offset": "0x314c1",
+      "hex": "837a5000",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "angle": {
+      "code_offset": "0x277d7",
+      "hex": "8b4b20",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "state": {
+      "code_offset": "0x314e6",
+      "hex": "8b5a64",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "tics": {
+      "code_offset": "0x314d4",
+      "hex": "8b5a60",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "lastlook": {
+      "code_offset": "0x315c6",
+      "hex": "899188000000",
+      "displacement_offset": 2,
+      "displacement_bytes": 4
+    },
+    "floor": {
+      "code_offset": "0x31608",
+      "hex": "895138",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "ceiling": {
+      "code_offset": "0x31613",
+      "hex": "89513c",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "source": {
+      "code_offset": "0x31c93",
+      "hex": "897e78",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    },
+    "flags": {
+      "code_offset": "0x3159d",
+      "hex": "895668",
+      "displacement_offset": 2,
+      "displacement_bytes": 1
+    }
+  },
+  "projectile_layout": {
+    "type": 31,
+    "missile_mask": 65536,
+    "first_state": 97,
+    "last_state": 101
+  },
+  "projectile_scope": "Live MT_TROOPSHOT thinkers including explosion states, in thinker-list order; source pointer normalized to null/player/one of six original E1M1 enemies. No persistent cross-tick projectile IDs; no other projectile types or sub-tick contact events.",
+  "exit_scope": "Normal exit request is observed as gameaction == 6, with secretexit == 0; stop on that tic, before G_DoCompleted or intermission."
+}

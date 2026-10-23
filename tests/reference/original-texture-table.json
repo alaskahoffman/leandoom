@@ -1,0 +1,29 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "table": {
+      "code_offset": "0x34700",
+      "file_offset": "0x76714",
+      "hex": "8b15e400030031c985d27e3031f6a1e0000300bb0800000089fa8b0406e86ad20000",
+      "relocations": [
+        {
+          "offset": 15,
+          "object": 3,
+          "target": "0x300e0"
+        },
+        {
+          "offset": 2,
+          "object": 3,
+          "target": "0x300e4"
+        }
+      ]
+    },
+    "missing": {
+      "code_offset": "0x3473c",
+      "file_offset": "0x76750",
+      "hex": "b8ffffffff",
+      "relocations": []
+    }
+  },
+  "scope": "Texture count gate, first comparison call and missing-result assignment. Comparison body and loop excluded."
+}

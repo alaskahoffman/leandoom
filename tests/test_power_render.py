@@ -74,7 +74,7 @@ class PowerRenderTests(unittest.TestCase):
     def test_weapon_and_fullbright_muzzle_flash_use_fixed_map(self):
         weapons=[entry for entry in combat_art() if entry[0].startswith('PIS')]
         geom=scene()+weapons
-        for script,index in [('1:2,1:0',230),('1:2,5:8192',233)]:
+        for script,index in [('1:2,15:0',230),('1:2,15:0,5:8192',233)]:
             pixels=self.frame(geom,script,combat=True)
             self.assertEqual(self.pixel(pixels,156,164),rgb(mapped(32,index)))
 

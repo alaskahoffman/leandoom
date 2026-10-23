@@ -1,0 +1,46 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x2d460",
+      "file_offset": "0x6f474",
+      "hex": "535152568b58708d149d0000000029da8b1cd5902d01008b507083fa060f85f3fcffffba28000000e9fafcffff",
+      "relocations": [
+        {
+          "offset": 19,
+          "object": 3,
+          "target": "0x12d90"
+        }
+      ]
+    },
+    "decision": {
+      "code_offset": "0x2d176",
+      "file_offset": "0x6f18a",
+      "hex": "83fa087507ba02000000eb05ba0100000083fb0574093b94989c0000007f0ab8010000005e5a595bc3",
+      "relocations": []
+    },
+    "fire": {
+      "code_offset": "0x2d410",
+      "file_offset": "0x6f424",
+      "hex": "53515289c1e84600000085c07431ba9a0000008b01e8763a00008b51708d04950000000029d08b1cc5a02d010031d289c8e8fafbffff8b1189d0e8d19bffff5a595bc3",
+      "relocations": [
+        {
+          "offset": 41,
+          "object": 3,
+          "target": "0x12da0"
+        }
+      ]
+    }
+  },
+  "scope": "P_CheckAmmo acceptance and real success return; insufficient ammo stops at fallback selection. P_FireWeapon real call boundaries and attack pose setter.",
+  "data": {
+    "pose": {
+      "offset": "0x16b00",
+      "hex": "1c000000040000000c00000000000000950000000000000000000000"
+    },
+    "weapons": {
+      "offset": "0x12d90",
+      "hex": "050000000400000003000000020000000500000000000000000000000c0000000b0000000a0000000d0000001100000001000000140000001300000012000000150000001e000000"
+    }
+  }
+}

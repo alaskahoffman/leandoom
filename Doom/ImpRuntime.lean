@@ -1,8 +1,39 @@
 import Doom.DeathRuntime
 import Doom.Sight
+import Doom.MonsterMotion
 
 namespace Doom
 open Collision
+
+/-- P_MobjThinker's momentum phases for the supported walking actors/corpses,
+before their state-entry actions. Keep fixed positions and live links authoritative. -/
+def Simulation.moveActorMomentum (s : Simulation) (index : Nat) : Except String Simulation := do
+  let actor := s.actors[index]!
+  if actor.death.any (·.removed) || s.gibbed.contains actor.thing then return s
+  let scene ← s.player.syncScene s.map
+  let t := scene.things[actor.thing+1]!
+  if t.momx.raw == 0 && t.momy.raw == 0 && t.z == t.floor && actor.momz.raw == 0 then return s
+  let lighting : SectorLights.World := {
+    map := s.map, thinkers := s.lights, rng := s.rng,
+    busy := s.doors.map (·.sector) ++ s.movers.map (·.sector), movers := s.movers, moverSounds := s.moverSounds }
+  let scene := { scene with lighting := some lighting }
+  let (scene,body) ← MonsterMotion.advance scene (actor.thing+1)
+    { momz := actor.momz, noGravity := actor.death.any (fun d => d.flags &&& 0x200 != 0) }
+    actor.death.isSome s.map.sectorAt (fun scene event => do
+      let some world := scene.lighting | return scene
+      let world ← world.crossAll event.line false
+      return { scene with
+        lighting := some world,
+        lines := scene.lines.set! event.line { scene.lines[event.line]! with special := world.map.lines[event.line]!.special != 0 } })
+  let world := scene.lighting.getD lighting
+  let thing := world.map.things[actor.thing]!
+  let thing := { thing with position := ⟨body.x.raw.toInt/65536,body.y.raw.toInt/65536⟩ }
+  let map := { world.map with things := world.map.things.set! actor.thing thing }
+  return { s with
+    map, lights := world.thinkers, rng := world.rng,
+    movers := world.movers, moverSounds := world.moverSounds,
+    actors := s.actors.set! index { actor with momz := body.momz },
+    player := { s.player with scene := some scene, mapActors := map.things } }
 
 def Simulation.impThing (s : Simulation) (id : Nat) : Except String SolidThing := do
   let scene ← s.player.syncScene s.map
@@ -58,11 +89,14 @@ def Simulation.impRun (s : Simulation) (index : Nat) (entry : Option Nat := none
   let some imp := s.actors[index]!.imp | throw "imp: missing state"
   let action := match entry with | none => Imp.tick impHooks | some id => Imp.enter impHooks 64 id
   let (_,world) ← action.run { host := s, actor := imp, rng := s.rng }
-  let mut s := { world.host with rng := world.rng }
+  -- AI rolls advance the play stream. Movement hooks can also open doors,
+  -- whose sounds advance the host's independent miscellaneous stream.
+  let mut s := { world.host with rng := { world.rng with misc := world.host.rng.misc } }
   let actor := s.actors[index]!
-  let mode := if #[ImpData.TROO_STND,ImpData.TROO_STND2].contains world.actor.frame then ActorMode.idle
-    else if #[ImpData.TROO_PAIN,ImpData.TROO_PAIN2].contains world.actor.frame then .pain
-    else if #[ImpData.TROO_ATK1,ImpData.TROO_ATK2,ImpData.TROO_ATK3].contains world.actor.frame then .attack else .chase
+  let brain := world.actor
+  let mode := if brain.frame == brain.spawnFrame || brain.frame == brain.spawnFrame+1 then ActorMode.idle
+    else if brain.frame == brain.painFrame || brain.frame == brain.painFrame+1 then .pain
+    else if brain.frame ≥ brain.attackFrame && brain.frame < brain.painFrame then .attack else .chase
   s := { s with actors := s.actors.set! index { actor with imp := some world.actor, mode, age := actor.age+1 } }
   let t := s.map.things[actor.thing]!
   let map := { s.map with things := s.map.things.set! actor.thing { t with angle := world.actor.angle.raw.toNat*360/4294967296 } }

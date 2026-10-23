@@ -23,7 +23,7 @@ class FuzzRenderTests(unittest.TestCase):
     run_cli=test_assets.AssetTests.run_cli
     pixel=staticmethod(test_assets.AssetTests.pixel)
 
-    def frame(self,geom,script='1:2,1:0',combat=True):
+    def frame(self,geom,script='1:2,15:0',combat=True):
         out=self.directory/'fuzz.ppm'
         self.run_cli(['render-combat' if combat else 'render-sim','E1M1',script,out],geom)
         return out.read_bytes().split(b'\n',3)[3]

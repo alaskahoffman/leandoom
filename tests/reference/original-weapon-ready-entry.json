@@ -1,0 +1,28 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "entry": {
+      "code_offset": "0x2d2f0",
+      "file_offset": "0x6f304",
+      "hex": "5351565789c189d78b008b506481fa006b0100740881fa1c6b0100750cba950000008b01e8873b0000837970077514813f7c610100750cba0b0000008b01e83d200100",
+      "relocations": [
+        {
+          "offset": 49,
+          "object": 3,
+          "target": "0x1617c"
+        },
+        {
+          "offset": 23,
+          "object": 3,
+          "target": "0x16b1c"
+        },
+        {
+          "offset": 15,
+          "object": 3,
+          "target": "0x16b00"
+        }
+      ]
+    }
+  },
+  "scope": "A_WeaponReady prologue and pose/chainsaw checks, through actual pose-reset/sound CALLs or ready-decision entry. Callees are not assumed."
+}

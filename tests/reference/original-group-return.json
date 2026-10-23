@@ -1,0 +1,18 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "cache_call": {
+      "code_offset": "0x38d41",
+      "file_offset": "0x7ad55",
+      "hex": "a1944f07008b140689c8e8a0feffff",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x74f94"
+        }
+      ]
+    }
+  },
+  "scope": "Owned allocator return to W_CacheLumpNum and caller setup through actual W_ReadLump CALL. Stops at W_ReadLump entry; file I/O, subsequent return and full startup remain open."
+}

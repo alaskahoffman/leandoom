@@ -1,0 +1,36 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "vertices": {
+      "code_offset": "0x2e2b2",
+      "file_offset": "0x702c6",
+      "hex": "0fbf018d14c500000000a138c102008d341089330fbf51028d14d50000000001d0894304",
+      "relocations": [
+        {
+          "offset": 11,
+          "object": 3,
+          "target": "0x2c138"
+        }
+      ]
+    },
+    "delta": {
+      "code_offset": "0x2e2d6",
+      "file_offset": "0x702ea",
+      "hex": "89c78b008b1629d08943088b47048b560429d089430c",
+      "relocations": []
+    },
+    "horizontal": {
+      "code_offset": "0x2e326",
+      "file_offset": "0x7033a",
+      "hex": "8b068b1739d07d078943228b07eb058953228b06894326",
+      "relocations": []
+    },
+    "vertical": {
+      "code_offset": "0x2e33d",
+      "file_offset": "0x70351",
+      "hex": "8b46048b570439d07d0889431e8b4704eb0689531e8b460489431a",
+      "relocations": []
+    }
+  },
+  "scope": "Original P_LoadLineDefs vertex pointers, dx/dy and bounding-box stores. Vertex/delta prefix and bounds-to-loader-advance suffix are separate; metadata, slope/FixedDiv gap, allocation and complete loader loop remain open."
+}

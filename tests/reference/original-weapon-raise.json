@@ -1,0 +1,35 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "raise": {
+      "code_offset": "0x2d4d0",
+      "file_offset": "0x6f4e4",
+      "hex": "535189c38b4a0c81e900000600894a0c81f9000020007f25c7420c000020008b50708d04950000000029d08b0cc59c2d010031d289d889cbe833fbffff595bc3",
+      "relocations": [
+        {
+          "offset": 46,
+          "object": 3,
+          "target": "0x12d9c"
+        }
+      ]
+    }
+  },
+  "scope": "Original A_Raise through its in-progress RET or ready-state setter CALL. The ready action and subsequent return chain are separate.",
+  "tables": {
+    "ready0": {
+      "offset": "0x12d9c",
+      "hex": "02000000",
+      "relocations": []
+    },
+    "ready1": {
+      "offset": "0x12db4",
+      "hex": "0a000000",
+      "relocations": []
+    },
+    "ready2": {
+      "offset": "0x12dcc",
+      "hex": "12000000",
+      "relocations": []
+    }
+  }
+}

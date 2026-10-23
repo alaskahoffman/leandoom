@@ -1,0 +1,22 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "cleanup": {
+      "code_offset": "0x2e4dd",
+      "file_offset": "0x704f1",
+      "hex": "8b442404e81ab1000083c4085d5f5e5a595bc3",
+      "relocations": []
+    },
+    "free": {
+      "code_offset": "0x39600",
+      "file_offset": "0x7b614",
+      "hex": "5351528d50e8817a0c114a1d00740d68003b0200e8f714feff83c4048b4a0481f9000100007606c70100000000c7420400000000c74208000000008b4214c7420c0000000083780400751d8b1a01188b5a108958108943148b1de04f07003b531c750389431c89c28b421083780400751b8b18011a8b5810895a108953148b1de04f07003b431c750389531c5a595bc3",
+      "relocations": [
+        {"offset": 16, "object": 3, "target": "0x23b00"},
+        {"offset": 128, "object": 3, "target": "0x74fe0"},
+        {"offset": 90, "object": 3, "target": "0x74fe0"}
+      ]
+    }
+  },
+  "scope": "Complete cleanup and Z_Free bytes authenticated; theorem executes owned valid block with both neighbors occupied only. No initialization reachability or general deallocator claim."
+}

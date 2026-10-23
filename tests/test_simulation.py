@@ -45,26 +45,26 @@ class SimulationTests(unittest.TestCase):
 
     def test_manual_door_open_wait_close_and_hold_debounce(self):
         geom = door_room()
-        self.assertEqual(self.sim(geom, "1:4096")['ceilings'][1], -16)
-        self.assertEqual(self.sim(geom, "11:4096")['ceilings'][1], 4)
-        top = self.sim(geom, "71:4096")
+        self.assertEqual(self.sim(geom, "1:4096")['ceilings'][1], -14)
+        self.assertEqual(self.sim(geom, "11:4096")['ceilings'][1], 6)
+        top = self.sim(geom, "70:4096")
         self.assertEqual(top['ceilings'][1], 124)
         # T_MovePlane uses a strict overshoot test: equality is still moving.
         self.assertEqual(top['doors'][0]['direction'], 1)
         self.assertEqual(top['doors'][0]['wait'], 0)
-        self.assertEqual(self.sim(geom, "72:4096")['doors'][0]['wait'], 150)
-        self.assertEqual(self.sim(geom, "222:4096")['ceilings'][1], 124)
-        self.assertEqual(self.sim(geom, "223:4096")['ceilings'][1], 122)
-        exact = self.sim(geom, "292:4096")
+        self.assertEqual(self.sim(geom, "71:4096")['doors'][0]['wait'], 150)
+        self.assertEqual(self.sim(geom, "221:4096")['ceilings'][1], 124)
+        self.assertEqual(self.sim(geom, "222:4096")['ceilings'][1], 122)
+        exact = self.sim(geom, "291:4096")
         self.assertEqual(exact['ceilings'][1], -16)
         self.assertTrue(exact['doors'])
-        end = self.sim(geom, "293:4096")
+        end = self.sim(geom, "292:4096")
         self.assertEqual(end['ceilings'][1], -16)
         self.assertEqual(end['doors'], [])
 
     def test_reuse_reverses_manual_door(self):
         result = self.sim(door_room(), "1:4096,10:0,1:4096,1:0")
-        self.assertEqual(result['ceilings'][1], 4)
+        self.assertEqual(result['ceilings'][1], 2)
         self.assertEqual(result['doors'][0]['direction'], -1)
         result = self.sim(door_room(), "1:4096,10:0,1:4096,1:0,1:4096,1:0")
         self.assertEqual(result['doors'][0]['direction'], 1)
@@ -72,7 +72,7 @@ class SimulationTests(unittest.TestCase):
     def test_open_stays_open_and_fast_door_speed(self):
         for special, speed in [(31, 2), (118, 8)]:
             result = self.sim(door_room(special), "1:4096,1:0")
-            self.assertEqual(result['ceilings'][1], -16+speed)
+            self.assertEqual(result['ceilings'][1], -16+2*speed)
             self.assertEqual(result['specials'][2], 0)
             result = self.sim(door_room(special), "1:4096,400:0")
             self.assertEqual(result['ceilings'][1], 124)
@@ -115,6 +115,14 @@ class SimulationTests(unittest.TestCase):
         geom = replace(geom, 'BLOCKMAP', blockmap)
         self.assertEqual(self.sim(geom, '1:4096,80:0')['ceilings'][1], -16)
 
+    def test_use_precedes_same_tic_key_pickup_and_requires_new_press(self):
+        geometry=door_room(32,extras=[(16,0,0,5,7)])
+        blocked=self.sim(geometry,'1:4098,80:4096')
+        self.assertTrue(blocked['blue'])
+        self.assertEqual(blocked['ceilings'][1],-16)
+        opened=self.sim(geometry,'1:4098,1:0,1:4096,80:0')
+        self.assertEqual(opened['ceilings'][1],124)
+
     def test_all_key_colors_cards_and_skulls(self):
         for special, field, card, skull in [(26,'blue',5,40), (28,'red',13,38), (27,'yellow',6,39)]:
             blocked = self.sim(door_room(special), "1:4096,80:0")
@@ -123,7 +131,7 @@ class SimulationTests(unittest.TestCase):
             wrong = self.sim(door_room(special, extras=[(16, 0, 0, 13 if card != 13 else 5, 7)]), "1:4096,80:0")
             self.assertEqual(wrong['ceilings'][1], -16)
             for key in [card, skull]:
-                opened = self.sim(door_room(special, extras=[(16, 0, 0, key, 7)]), "1:4098,80:0")
+                opened = self.sim(door_room(special, extras=[(16, 0, 0, key, 7)]), "1:2,1:4096,80:0")
                 self.assertTrue(opened[field])
                 self.assertEqual(opened['ceilings'][1], 124)
                 self.assertEqual(opened['collected'], [1])
@@ -144,7 +152,7 @@ class SimulationTests(unittest.TestCase):
     def test_locked_tagged_switch_and_close_only_switch(self):
         for special, field, key in [(133, 'blue', 5), (135, 'red', 13), (137, 'yellow', 6)]:
             self.assertEqual(self.sim(switch_room(special), "1:4096,80:0")['ceilings'][1], -16)
-            result = self.sim(switch_room(special, extras=[(16, 0, 0, key, 7)]), "1:4098,30:0")
+            result = self.sim(switch_room(special, extras=[(16, 0, 0, key, 7)]), "1:2,1:4096,30:0")
             self.assertTrue(result[field])
             self.assertEqual(result['ceilings'][1], 124)
         result = self.sim(switch_room(50, open_door=True), "1:4096,80:0")
@@ -266,15 +274,20 @@ class SimulationTests(unittest.TestCase):
         geom = things(room(), [(0,0,0,1,7), (48,0,0,3004,7)]) + artwork()
         geom += [('POSSA0',patch([[230]*16 for _ in range(64)],8,64)),
                  ('POSSB0',patch([[240]*16 for _ in range(64)],8,64))]
-        for tick, color in [(0,230),(9,230),(10,240),(19,240),(20,230),(30,240)]:
+        # P_SpawnMapThing: the third P_Random draw is 220, so 220%10+1=1.
+        for tick, color in [(0,230),(1,240),(10,240),(11,230),(20,230),(21,240)]:
             self.assertEqual(self.pixel(self.frame(geom, f'{tick}:0'),160,100),rgb(color))
 
     def test_animated_fullbright_and_unequal_durations(self):
         geom = things(room(), [(0,0,0,1,7), (48,0,0,2018,7)]) + artwork()
+        # In vanilla the default bright sector selects row zero this close.
+        sector=bytearray(dict(geom)['SECTORS']);struct.pack_into('<h',sector,20,96)
+        geom=replace(geom,'SECTORS',bytes(sector))
         geom = replace(geom, 'COLORMAP', bytes(range(256)) + bytes([17])*(33*256))
         geom += [('ARM1A0',patch([[230]*16 for _ in range(64)],8,64)),
                  ('ARM1B0',patch([[240]*16 for _ in range(64)],8,64))]
-        for tick, color in [(0,17),(5,17),(6,240),(12,240),(13,17)]:
+        # The first frame lasts 220%6+1=5; subsequent A/B frames last 6/7.
+        for tick, color in [(0,17),(4,17),(5,240),(11,240),(12,17),(17,17),(18,240)]:
             self.assertEqual(self.pixel(self.frame(geom, f'{tick}:0'),160,100),rgb(color))
 
     def test_sprite_namespace_excludes_intermission_name_collision(self):

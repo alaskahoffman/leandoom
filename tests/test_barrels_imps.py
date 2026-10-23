@@ -31,10 +31,10 @@ class BarrelImpTests(unittest.TestCase):
 
     def test_imp_takes_pistol_damage_pain_and_dies(self):
         geom=arena([(96,0,0,3001,7)])
-        first=self.state(geom,'5:8192')['actors'][0]
-        self.assertEqual((first['health'],first['pose']),(50,'TROOE'))
+        first=self.state(geom,'19:8192')['actors'][0]
+        self.assertEqual((first['health'],first['pose']),(55,'TROOE'))
         self.assertEqual(self.state(geom,'33:8192')['actors'][0]['pose'],'TROOH')
-        dead=self.state(geom,'100:8192,40:0')
+        dead=self.state(geom,'130:8192,40:0')
         self.assertEqual(dead['kills'],1)
         self.assertEqual(dead['actors'][0]['pose'],'TROOM')
         self.assertFalse(dead['actors'][0]['death']['solid'])
@@ -44,26 +44,26 @@ class BarrelImpTests(unittest.TestCase):
         geom=arena([(96,0,0,3001,7)])
         self.assertEqual(self.killed(geom,'0:0',-60)['actors'][0]['pose'],'TROOI')
         self.assertEqual(self.killed(geom,'0:0',-61)['actors'][0]['pose'],'TROON')
-        self.assertTrue(self.killed(geom,'14:0',-61)['actors'][0]['death']['solid'])
-        self.assertFalse(self.killed(geom,'15:0',-61)['actors'][0]['death']['solid'])
+        self.assertTrue(self.killed(geom,'12:0',-61)['actors'][0]['death']['solid'])
+        self.assertFalse(self.killed(geom,'13:0',-61)['actors'][0]['death']['solid'])
 
     def test_barrel_pistol_damage_has_no_pain_chase_or_kill_credit(self):
         geom=arena([(96,0,0,2035,7)])
-        first=self.state(geom,'5:8192')
-        self.assertEqual(first['actors'][0]['health'],5)
+        first=self.state(geom,'19:8192')
+        self.assertEqual(first['actors'][0]['health'],15)
         self.assertTrue(first['actors'][0]['mode'].endswith('idle'))
         self.assertEqual(first['actors'][0]['damageTarget'],-1)
         self.assertEqual(first['actors'][0]['x'],96)
         self.assertEqual([e['kind'] for e in first['shotEvents']],['puff','damage'])
-        dead=self.state(geom,'20:8192')
+        dead=self.state(geom,'34:8192')
         self.assertEqual(dead['actors'][0]['health'],0)
         self.assertEqual(dead['kills'],0)
         self.assertEqual(dead['dropped'],[])
 
     def test_blast_is_delayed_until_bexp4_then_barrel_is_removed(self):
         geom=arena([(96,0,0,2035,7)])
-        before=self.killed(geom,'14:0')
-        blast=self.killed(geom,'15:0')
+        before=self.killed(geom,'12:0')
+        blast=self.killed(geom,'13:0')
         self.assertEqual(before['health'],100)
         self.assertEqual(before['actors'][0]['pose'],'BEXPC')
         self.assertEqual(blast['health'],52)  # 128 - (96 - player radius 16).
@@ -71,8 +71,8 @@ class BarrelImpTests(unittest.TestCase):
         self.assertEqual(blast['actors'][0]['death']['height'],10.5)
         self.assertTrue(blast['actors'][0]['death']['solid'])
         self.assertEqual(blast['blastEvents'],[{'spot':1,'target':-1,'damage':48}])
-        self.assertFalse(self.killed(geom,'34:0')['actors'][0]['removed'])
-        removed=self.killed(geom,'35:0')
+        self.assertFalse(self.killed(geom,'32:0')['actors'][0]['removed'])
+        removed=self.killed(geom,'33:0')
         self.assertTrue(removed['actors'][0]['removed'])
         self.assertEqual(self.killed(geom,'100:0')['health'],52)
 

@@ -1,0 +1,24 @@
+{
+  "exe_profile": "original-mul.json",
+  "units": {
+    "latch": {
+      "code_offset": "0x2e4d1",
+      "file_offset": "0x704e5",
+      "hex": "a11cc1020083c61e39c57c8d",
+      "relocations": [
+        {
+          "offset": 1,
+          "object": 3,
+          "target": "0x2c11c"
+        }
+      ]
+    },
+    "offsets": {
+      "code_offset": "0x2e46a",
+      "file_offset": "0x7047e",
+      "hex": "0fbf03c1e01089020fbf4302c1e01089420489c8",
+      "relocations": []
+    }
+  },
+  "scope": "Original P_LoadSideDefs signed loop latch and next-record offset stores, stopping before first texture lookup. No texture-call bodies, allocator, enclosing loader or startup reachability."
+}

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the live imp and imp-fireball state tables from pinned info.c."""
+"""Generate the live imp, zombieman and imp-fireball state tables from pinned info.c."""
 import importlib.util,sys,argparse
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('death_data',ROOT/'scripts/generate-death.py')
 data=importlib.util.module_from_spec(spec);spec.loader.exec_module(data)
 rows,ids,_,_=data.data()
-labels=[r[-1] for r in rows if r[-1].startswith(('S_TROO_','S_TBALL')) and not any(t in r[-1] for t in ('DIE','RAISE'))]
+labels=[r[-1] for r in rows if r[-1].startswith(('S_TROO_','S_TBALL','S_POSS_')) and not any(t in r[-1] for t in ('DIE','RAISE'))]
 out='''/- Generated from pinned Chocolate Doom 3.1.1 info.c by scripts/generate-imp.py.
 Derived from id Software / Simon Howard. SPDX-License-Identifier: GPL-2.0-or-later. -/
 import Doom.Death
